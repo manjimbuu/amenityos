@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 
 <html lang="en">
 <head>
@@ -266,7 +266,7 @@ const{data:existing}=await sb.from(“club_users”)
     }).eq("id",existing.id);
     if(upErr){setLoading(false);return showErr("Error claiming account: "+upErr.message);}
     setLoading(false);setMode("login");
-    showOk(isFirstAdmin?`Welcome! You've been set up as the director. Please sign in.`:isStaff?"Account created! Pending director approval.":"Account claimed — please sign in.");
+    showOk(isFirstAdmin?"Welcome! You have been set up as the director. Please sign in.":isStaff?"Account created! Pending director approval.":"Account claimed — please sign in.");
   } else {
     const{error:insErr}=await sb.from("club_users").insert({
       id:crypto.randomUUID(),
@@ -378,7 +378,7 @@ if(e.date===newEv.date){
 if(newEv.start_time<e.end_time&&newEv.end_time>e.start_time)
 conflicts.push({type:“overlap”,msg:`Time overlap with "${e.title}" (${e.start_time}–${e.end_time})`});
 else if(sd===1)
-conflicts.push({type:“spacing”,msg:`${room.name} doesn't allow same-day bookings`});
+conflicts.push({type:“spacing”,msg:`${room.name} does not allow same-day bookings`});
 } else if(sd>1&&diff<sd){
 conflicts.push({type:“spacing”,msg:`${room.name} needs ${sd} days between events — "${e.title}" is on ${e.date} (${Math.round(diff)}d gap)`});
 }
@@ -997,7 +997,7 @@ addToast(“Event updated ✅”,“success”);setEditEv(null);onRefresh();
 const exportCSV=()=>{
 const h=[“Title”,“Club”,“Room”,“Date”,“Start”,“End”,“Type”,“Attendance”,“Status”,“Notes”];
 const rows=events.map(e=>[e.title,e.club,e.room,e.date,e.start_time,e.end_time,e.type,e.attendance,e.status,e.notes||””]);
-const csv=[h,…rows].map(r=>r.map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(”,”)).join(”\n”);
+const csv=[h,…rows].map(r=>r.map(v=>’”’+String(v||””).replace(/”/g,’””’)+’”’).join(”,”)).join(”\n”);
 const a=document.createElement(“a”);a.href=“data:text/csv;charset=utf-8,\uFEFF”+encodeURIComponent(csv);a.download=“eventclub-export.csv”;a.click();
 };
 
@@ -1353,7 +1353,10 @@ return(
       <div style={{fontSize:"2rem",marginBottom:12}}>⚠️</div>
       <h3 style={{color:"#991b1b",fontWeight:800,marginBottom:8}}>{confirmDel.type==="user"?"Deactivate Account":"Delete "+confirmDel.name}?</h3>
       <p style={{fontSize:".875rem",color:"#6b7280",marginBottom:20}}>
-        {confirmDel.type==="user"?`"${confirmDel.name}" won't be able to log in.`:`This permanently deletes "${confirmDel.name}" and cannot be undone.`}
+        {confirmDel.type==="user"
+          ? `"${confirmDel.name}" will not be able to log in.`
+          : `This permanently deletes "${confirmDel.name}" and cannot be undone.`
+        }
       </p>
       <div style={{display:"flex",gap:8,justifyContent:"center"}}>
         <button className="btn-ghost" onClick={()=>setConfirmDel(null)}>Cancel</button>
