@@ -579,7 +579,22 @@ function SubmitEvent({user,events,rooms,eventTypes,addToast,onRefresh}){
       return addToast("Please fill in all required fields","error");
     if(blockingConflicts.length>0)return addToast("Resolve conflicts before submitting","error");
     setLoading(true);
+
+    // Build all recurring dates first
     const dates=buildRecurringDates(form.date,form.recurrence,form.recurrence_end);
+
+    // Check every date for conflicts before saving anything
+    const allConflicts=[];
+    for(const d of dates){
+      const cf=detectConflicts({...form,date:d,id:null},events,rooms,eventTypes).filter(c=>!c.warning);
+      if(cf.length>0) allConflicts.push({date:d,conflicts:cf});
+    }
+
+    if(allConflicts.length>0){
+      setLoading(false);
+      const sample=allConflicts.slice(0,3).map(c=>`${c.date}: ${c.conflicts[0].msg}`).join("\n");
+      return addToast(`⚠️ ${allConflicts.length} date(s) have conflicts:\n${sample}`,"error");
+    }
     let errorCount=0;
     for(const d of dates){
       const{error}=await sb.from("events").insert({
@@ -698,11 +713,16 @@ function SubmitEvent({user,events,rooms,eventTypes,addToast,onRefresh}){
 
           {blockingConflicts.length>0&&(
             <div style={{background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"12px 14px"}}>
-              <div style={{fontWeight:700,fontSize:".82rem",color:"#991b1b",marginBottom:6}}>🚫 Conflicts Detected</div>
-              {blockingConflicts.map((c,i)=><div key={i} style={{fontSize:".78rem",color:"#991b1b",marginBottom:2}}>• {c.msg}</div>)}
+              <div style={{fontWeight:700,fontSize:".82rem",color:"#991b1b",marginBottom:6}}>🚫 Conflicts Detected — Cannot Submit</div>
+              {blockingConflicts.map((c,i)=><div key={i} style={{fontSize:".78rem",color:"#991b1b",marginBottom:4,paddingLeft:8,borderLeft:"2px solid #fca5a5"}}>• {c.msg}</div>)}
+              {form.recurrence!=="none"&&(
+                <div style={{fontSize:".76rem",color:"#991b1b",marginTop:8,paddingTop:8,borderTop:"1px solid #fca5a5"}}>
+                  ⚠️ All recurring dates will be checked for conflicts before submission.
+                </div>
+              )}
               {altDates.length>0&&(
                 <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #fca5a5"}}>
-                  <div style={{fontSize:".78rem",fontWeight:700,color:"#991b1b",marginBottom:6}}>💡 Available alternative dates:</div>
+                  <div style={{fontSize:".78rem",fontWeight:700,color:"#991b1b",marginBottom:6}}>💡 Next available dates:</div>
                   <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
                     {altDates.map(d=>(
                       <button key={d} onClick={()=>set("date",d)} style={{background:"#fff",border:"1.5px solid #991b1b",color:"#991b1b",borderRadius:8,padding:"5px 12px",fontSize:".78rem",fontWeight:700,cursor:"pointer"}}>
