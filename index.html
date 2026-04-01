@@ -228,17 +228,22 @@ function AuthScreen({onAuth}){
 
       const isStaff=["management","staff"].includes(form.role);
 
+      // Check if any admin exists — if not, first management signup becomes admin
+      const{data:existingAdmins}=await sb.from("club_users").select("id").eq("is_admin",true).limit(1);
+      const noAdminExists=!existingAdmins||existingAdmins.length===0;
+      const isFirstAdmin=isStaff&&noAdminExists;
+
       if(existing){
-        // Claim the existing club account
         const{error:upErr}=await sb.from("club_users").update({
           email:form.email.trim().toLowerCase(),
-          account_status: isStaff?"pending":"active",
+          account_status:isFirstAdmin?"active":isStaff?"pending":"active",
+          is_admin:isFirstAdmin,
+          role:isFirstAdmin?"director":isStaff?"staff":"resident",
         }).eq("id",existing.id);
         if(upErr){setLoading(false);return showErr("Error claiming account: "+upErr.message);}
         setLoading(false);setMode("login");
-        showOk(`Welcome back, ${existing.club}! ${isStaff?"Your account is pending approval.":"Account claimed — please sign in."}`);
+        showOk(isFirstAdmin?`Welcome! You've been set up as the director. Please sign in.`:isStaff?"Account created! Pending director approval.":"Account claimed — please sign in.");
       } else {
-        // Create new account
         const{error:insErr}=await sb.from("club_users").insert({
           id:crypto.randomUUID(),
           email:form.email.trim().toLowerCase(),
@@ -247,13 +252,13 @@ function AuthScreen({onAuth}){
           club:form.club.trim(),
           name:form.club.trim(),
           type:form.role,
-          role:isStaff?"staff":"resident",
-          account_status:isStaff?"pending":"active",
-          is_admin:false,
+          role:isFirstAdmin?"director":isStaff?"staff":"resident",
+          account_status:isFirstAdmin?"active":isStaff?"pending":"active",
+          is_admin:isFirstAdmin,
         });
         if(insErr){setLoading(false);return showErr("Error creating profile: "+insErr.message);}
         setLoading(false);setMode("login");
-        showOk(isStaff?"Account created! Pending director approval.":"Account created! Please sign in.");
+        showOk(isFirstAdmin?"You're the first admin! Account is ready — please sign in.":isStaff?"Account created! Pending director approval.":"Account created! Please sign in.");
       }
     }catch(e){setLoading(false);showErr("Connection error. Please try again.");}
   };
@@ -292,9 +297,17 @@ function AuthScreen({onAuth}){
               <select value={form.role} onChange={e=>set("role",e.target.value)}>
                 <option value="club">Club Representative</option>
                 <option value="committee">Committee Member</option>
-                <option value="management">Management Team</option>
-                <option value="staff">Staff</option>
+                {form.showAdmin&&<option value="management">Management Team (Director)</option>}
               </select>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <button onClick={async()=>{
+                const{data}=await sb.from("club_users").select("id").eq("is_admin",true).limit(1);
+                if(!data||data.length===0){set("showAdmin",true);showOk("Director setup mode enabled.");}
+                else showErr("A director account already exists. Contact your director for access.");
+              }} style={{background:"none",border:"none",color:"#9ca3af",fontSize:".72rem",cursor:"pointer",textDecoration:"underline"}}>
+                Setting up as director?
+              </button>
             </div>
             <div><label>Email Address *</label><input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@email.com"/></div>
             <div className="form-row">
@@ -302,8 +315,8 @@ function AuthScreen({onAuth}){
               <div><label>Confirm Password *</label><input type="password" value={form.confirm} onChange={e=>set("confirm",e.target.value)} placeholder="Repeat password"/></div>
             </div>
             {["management","staff"].includes(form.role)&&(
-              <div style={{background:"#fef3c7",border:"1px solid #fbbf24",borderRadius:8,padding:"10px 14px",fontSize:".79rem",color:"#92400e"}}>
-                ⏳ Management & Staff accounts require director approval before access is granted.
+              <div style={{background:"#f0f4ff",border:"1px solid #c7d2fe",borderRadius:8,padding:"10px 14px",fontSize:".79rem",color:"#3730a3"}}>
+                💡 If no director exists yet, the first Management Team signup automatically becomes the admin. Otherwise your account will need director approval.
               </div>
             )}
             {msg.text&&<div style={{fontSize:".8rem",padding:"10px 14px",borderRadius:8,background:msg.ok?"#d1fae5":"#fee2e2",color:msg.ok?"#065f46":"#991b1b"}}>{msg.text}</div>}
