@@ -151,7 +151,7 @@ function Logo({size=34}){
 function Nav({nav,setNav,user,onLogout}){
   const isAdmin=user?.role==="director"||user?.is_admin===true;
   const tabs=isAdmin
-    ?[["calendar","📅","Calendar"],["dashboard","📊","Dashboard"],["directory","👥","Directory"],["settings","⚙️","Settings"]]
+    ?[["calendar","📅","Calendar"],["submit","✏️","Submit"],["dashboard","📊","Dashboard"],["directory","👥","Directory"],["settings","⚙️","Settings"]]
     :[["calendar","📅","Calendar"],["submit","✏️","Submit"],["myevents","📋","My Events"],["directory","👥","Directory"]];
   return(
     <>
@@ -1275,7 +1275,7 @@ function App(){
       <Nav nav={nav} setNav={setNav} user={user} onLogout={onLogout}/>
       <div className="content">
         {nav==="calendar"  &&<CalendarView events={events} eventTypes={eventTypes} onSelect={setSel}/>}
-        {nav==="submit"    &&!isAdmin&&<SubmitEvent user={user} events={events} rooms={rooms} eventTypes={eventTypes} addToast={addToast} onRefresh={onRefresh}/>}
+        {nav==="submit"    &&<SubmitEvent user={user} events={events} rooms={rooms} eventTypes={eventTypes} addToast={addToast} onRefresh={onRefresh}/>}
         {nav==="myevents"  &&!isAdmin&&<MyEvents user={user} events={events} eventTypes={eventTypes} onSelect={setSel}/>}
         {nav==="directory" &&<ClubDirectory clubUsers={clubUsers}/>}
         {nav==="dashboard" &&isAdmin&&<Dashboard events={events} eventTypes={eventTypes} rooms={rooms} clubUsers={clubUsers} onSelect={setSel} addToast={addToast} onRefresh={onRefresh}/>}
