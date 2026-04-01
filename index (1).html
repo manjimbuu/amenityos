@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EventClub – Valencia Isles</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--navy:#1B3461;--gold:#C9A84C;--bg:#EDF2F9;--gray-100:#F3F4F6;--gray-200:#E5E7EB;--gray-300:#D1D5DB;--gray-500:#6B7280;--gray-700:#374151;--shadow:0 1px 3px rgba(0,0,0,.1);}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);min-height:100vh;color:#111827;}
+input,select,textarea{font-family:inherit;font-size:.875rem;border:1.5px solid var(--gray-300);border-radius:8px;padding:9px 12px;width:100%;outline:none;background:#fff;color:#111827;transition:border .15s,box-shadow .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(27,52,97,.1);}
+button{font-family:inherit;cursor:pointer;border:none;transition:all .15s;}
+label{font-size:.78rem;font-weight:600;color:var(--gray-700);display:block;margin-bottom:5px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fade{animation:fadeUp .28s ease both;}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
+.b-green{background:#d1fae5;color:#065f46;}.b-yellow{background:#fef3c7;color:#92400e;}.b-red{background:#fee2e2;color:#991b1b;}.b-blue{background:#dbeafe;color:#1e40af;}.b-purple{background:#ede9fe;color:#5b21b6;}.b-orange{background:#ffedd5;color:#c2410c;}
+.card{background:#fff;border-radius:12px;border:1px solid var(--gray-200);box-shadow:var(--shadow);}
+.btn-primary{background:var(--navy);color:#fff;border-radius:10px;padding:11px 20px;font-weight:700;font-size:.875rem;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
+.btn-primary:hover:not(:disabled){opacity:.88;}.btn-primary:disabled{background:#9ca3af;cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1.5px solid var(--gray-200);color:var(--gray-700);border-radius:10px;padding:9px 16px;font-size:.875rem;font-weight:600;}
+.btn-ghost:hover{background:var(--gray-100);}
+.btn-danger{background:#fee2e2;color:#991b1b;border-radius:10px;padding:9px 16px;font-size:.875rem;font-weight:600;}
+.btn-danger:hover{background:#fecaca;}
+.btn-gold{background:var(--gold);color:#fff;border-radius:10px;padding:9px 16px;font-size:.875rem;font-weight:700;}
+.btn-gold:hover{opacity:.88;}
+.toast-container{position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none;}
+.toast{background:#1f2937;color:#fff;padding:12px 18px;border-radius:10px;font-size:.875rem;font-weight:500;box-shadow:0 4px 6px rgba(0,0,0,.1);pointer-events:all;animation:fadeUp .25s ease both;}
+.toast.success{background:#065f46;}.toast.error{background:#991b1b;}.toast.warning{background:#92400e;}
+.overlay-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;}
+.overlay-box{background:#fff;border-radius:16px;width:100%;max-width:540px;max-height:90vh;overflow-y:auto;padding:28px;}
+@media(max-width:600px){.overlay-box{padding:20px;max-height:95vh;border-radius:16px 16px 0 0;position:fixed;bottom:0;left:0;right:0;margin:0;}}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--gray-200);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);}
+.bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px;font-size:.62rem;font-weight:600;color:var(--gray-500);background:none;border:none;cursor:pointer;}
+.bottom-nav button.active{color:var(--navy);}
+.bottom-nav button .ni{font-size:1.25rem;}
+.top-nav{background:var(--navy);color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.content{padding:16px;padding-bottom:90px;max-width:900px;margin:0 auto;}
+@media(min-width:768px){.content{padding:24px 28px;padding-bottom:28px;}.bottom-nav{display:none;}.desktop-nav{display:flex !important;}}
+.desktop-nav{display:none;align-items:center;gap:4px;}
+.desktop-nav button{background:none;color:rgba(255,255,255,.75);padding:8px 14px;border-radius:8px;font-size:.875rem;font-weight:600;border:none;cursor:pointer;}
+.desktop-nav button.active,.desktop-nav button:hover{background:rgba(255,255,255,.15);color:#fff;}
+.form-grid{display:grid;gap:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:480px){.form-row{grid-template-columns:1fr;}}
+.section-title{font-size:1.05rem;font-weight:800;color:var(--navy);margin-bottom:14px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.875rem;}
+th{text-align:left;padding:10px 14px;font-size:.71rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--gray-200);}
+td{padding:12px 14px;border-bottom:1px solid var(--gray-100);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}tr:hover td{background:#fafafa;}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:500px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+@media print{
+  .top-nav,.bottom-nav,.no-print{display:none!important;}
+  .print-calendar{display:block!important;}
+  body{background:#fff;}
+  .content{padding:0;max-width:100%;}
+}
+.print-calendar{display:none;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+// ── CONFIG ──────────────────────────────────────────────────────
+const SUPABASE_URL = "https://kmzycozkrsnubyfgwbav.supabase.co";
+const SUPABASE_KEY = "sb_publishable_9bm2lvnHXnnMUKVEdIr8Tw_Ro4FMvzc";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// EmailJS — sign up free at emailjs.com, then fill these in:
+const EMAILJS_PUBLIC_KEY    = "YOUR_PUBLIC_KEY";       // Account > API Keys
+const EMAILJS_SERVICE_ID    = "YOUR_SERVICE_ID";       // Email Services
+const EMAILJS_TPL_SUBMIT    = "YOUR_SUBMIT_TEMPLATE";  // template for new event (to director)
+const EMAILJS_TPL_APPROVE   = "YOUR_APPROVE_TEMPLATE"; // template for approval (to club)
+const DIRECTOR_EMAIL        = "lifestyle@valenciaisleshoa.com";
+const EMAIL_CONFIGURED      = EMAILJS_PUBLIC_KEY !== "YOUR_PUBLIC_KEY";
+
+const NAVY="#1B3461", GOLD="#C9A84C";
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DAYS_SHORT=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const SETUPS=["Theater","Classroom","Banquet","Cocktail","Board Meeting","Reception","U-Shape"];
+const SPACING_OPTS=[{v:0,l:"No restriction"},{v:1,l:"No same-day"},{v:7,l:"7 days"},{v:10,l:"10 days"},{v:15,l:"15 days"},{v:30,l:"30 days"}];
+const RECURRENCE_OPTS=[{v:"none",l:"No recurrence"},{v:"weekly",l:"Weekly"},{v:"biweekly",l:"Every 2 weeks"},{v:"monthly",l:"Monthly"}];
+
+// ── EMAIL ──
+async function sendEmail(templateId, params) {
+  if (!EMAIL_CONFIGURED) return;
+  try {
+    await emailjs.send(EMAILJS_SERVICE_ID, templateId, params, EMAILJS_PUBLIC_KEY);
+  } catch(e) { console.warn("Email failed:", e); }
+}
+
+// ── TOASTS ──
+function useToasts(){
+  const[toasts,setToasts]=useState([]);
+  const add=useCallback((msg,type="info")=>{
+    const id=Date.now();
+    setToasts(p=>[...p,{id,msg,type}]);
+    setTimeout(()=>setToasts(p=>p.filter(t=>t.id!==id)),4500);
+  },[]);
+  return{toasts,add};
+}
+function Toasts({toasts}){
+  return <div className="toast-container">{toasts.map(t=><div key={t.id} className={`toast ${t.type}`}>{t.msg}</div>)}</div>;
+}
+
+// ── OVERLAY ──
+function Overlay({onClose,children,wide}){
+  useEffect(()=>{
+    const fn=e=>{if(e.key==="Escape")onClose();};
+    document.addEventListener("keydown",fn);
+    return()=>document.removeEventListener("keydown",fn);
+  },[onClose]);
+  return(
+    <div className="overlay-bg" onClick={onClose}>
+      <div className="overlay-box fade" style={wide?{maxWidth:680}:{}} onClick={e=>e.stopPropagation()}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ── LOGO ──
+function Logo({size=34}){
+  return(
+    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+      <rect width="48" height="48" rx="11" fill={GOLD}/>
+      <rect x="11" y="7" width="7" height="5" rx="2.5" fill="white"/>
+      <rect x="30" y="7" width="7" height="5" rx="2.5" fill="white"/>
+      <rect x="7" y="15" width="34" height="27" rx="7" fill={NAVY}/>
+      <rect x="7" y="15" width="34" height="9" fill={NAVY}/>
+      <text x="24" y="37" textAnchor="middle" fill="white" fontSize="11.5" fontWeight="800" fontFamily="DM Sans,sans-serif">EC</text>
+      <circle cx="16" cy="20" r="2.2" fill={GOLD}/><circle cx="24" cy="20" r="2.2" fill={GOLD}/><circle cx="32" cy="20" r="2.2" fill={GOLD}/>
+    </svg>
+  );
+}
+
+// ── NAV ──
+function Nav({nav,setNav,user,onLogout}){
+  const isAdmin=user?.role==="director"||user?.is_admin===true;
+  const tabs=isAdmin
+    ?[["calendar","📅","Calendar"],["dashboard","📊","Dashboard"],["directory","👥","Directory"],["settings","⚙️","Settings"]]
+    :[["calendar","📅","Calendar"],["submit","✏️","Submit"],["myevents","📋","My Events"],["directory","👥","Directory"]];
+  return(
+    <>
+      <div className="top-nav">
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <Logo size={34}/>
+          <div>
+            <div style={{fontWeight:800,fontSize:"1rem"}}>EventClub</div>
+            <div style={{fontSize:".68rem",opacity:.65}}>Valencia Isles HOA</div>
+          </div>
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div className="desktop-nav">
+            {tabs.map(([k,icon,label])=>(
+              <button key={k} className={nav===k?"active":""} onClick={()=>setNav(k)}>{icon} {label}</button>
+            ))}
+          </div>
+          <div style={{fontSize:".75rem",opacity:.8,maxWidth:140,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {isAdmin ? "Director" : (user?.club?.includes("@") ? user?.name || "Member" : user?.club)}
+          </div>
+          <button onClick={onLogout} style={{background:"rgba(255,255,255,.15)",color:"#fff",borderRadius:8,padding:"6px 12px",fontSize:".75rem",fontWeight:600,border:"none"}}>Sign Out</button>
+        </div>
+      </div>
+      <div className="bottom-nav">
+        {tabs.map(([k,icon,label])=>(
+          <button key={k} className={nav===k?"active":""} onClick={()=>setNav(k)}>
+            <span className="ni">{icon}</span>{label}
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ── AUTH ──
+function AuthScreen({onAuth}){
+  const[mode,setMode]=useState("login");
+  const[form,setForm]=useState({email:"",password:"",confirm:"",club:"",role:"club"});
+  const[loading,setLoading]=useState(false);
+  const[msg,setMsg]=useState({text:"",ok:false});
+  const set=(k,v)=>setForm(p=>({...p,[k]:v}));
+  const showErr=t=>setMsg({text:t,ok:false});
+  const showOk=t=>setMsg({text:t,ok:true});
+
+  const doLogin=async()=>{
+    if(!form.email||!form.password)return showErr("Please enter your email and password.");
+    setLoading(true);setMsg({text:"",ok:false});
+    try{
+      const{data,error}=await sb.auth.signInWithPassword({email:form.email.trim(),password:form.password});
+      if(error){setLoading(false);return showErr(error.message);}
+      const{data:profile}=await sb.from("club_users").select("*").eq("email",form.email.trim().toLowerCase()).single();
+      if(!profile){await sb.auth.signOut();setLoading(false);return showErr("No account found for this email. Please sign up or contact your director.");}
+      if(profile.account_status==="pending"){await sb.auth.signOut();setLoading(false);return showErr("Your account is pending director approval. You'll be notified when approved.");}
+      if(profile.account_status==="inactive"){await sb.auth.signOut();setLoading(false);return showErr("Your account has been deactivated. Contact your director.");}
+      setLoading(false);onAuth({...profile,session:data.session});
+    }catch(e){setLoading(false);showErr("Connection error. Please try again.");}
+  };
+
+  const doSignup=async()=>{
+    if(!form.email||!form.password||!form.club)return showErr("Please fill in all required fields.");
+    if(form.password!==form.confirm)return showErr("Passwords do not match.");
+    if(form.password.length<6)return showErr("Password must be at least 6 characters.");
+    setLoading(true);setMsg({text:"",ok:false});
+    try{
+      // Check if existing club record can be claimed
+      const{data:existing}=await sb.from("club_users")
+        .select("*")
+        .ilike("club",form.club.trim())
+        .is("email",null)
+        .single();
+
+      const{data:authData,error:authErr}=await sb.auth.signUp({email:form.email.trim(),password:form.password});
+      if(authErr){setLoading(false);return showErr(authErr.message);}
+
+      const isStaff=["management","staff"].includes(form.role);
+
+      if(existing){
+        // Claim the existing club account
+        const{error:upErr}=await sb.from("club_users").update({
+          email:form.email.trim().toLowerCase(),
+          account_status: isStaff?"pending":"active",
+        }).eq("id",existing.id);
+        if(upErr){setLoading(false);return showErr("Error claiming account: "+upErr.message);}
+        setLoading(false);setMode("login");
+        showOk(`Welcome back, ${existing.club}! ${isStaff?"Your account is pending approval.":"Account claimed — please sign in."}`);
+      } else {
+        // Create new account
+        const{error:insErr}=await sb.from("club_users").insert({
+          id:crypto.randomUUID(),
+          email:form.email.trim().toLowerCase(),
+          username:form.email.trim().toLowerCase(),
+          password:"",
+          club:form.club.trim(),
+          name:form.club.trim(),
+          type:form.role,
+          role:isStaff?"staff":"resident",
+          account_status:isStaff?"pending":"active",
+          is_admin:false,
+        });
+        if(insErr){setLoading(false);return showErr("Error creating profile: "+insErr.message);}
+        setLoading(false);setMode("login");
+        showOk(isStaff?"Account created! Pending director approval.":"Account created! Please sign in.");
+      }
+    }catch(e){setLoading(false);showErr("Connection error. Please try again.");}
+  };
+
+  return(
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0d1b35 0%,#1B3461 55%,#2a4a82 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div className="card fade" style={{width:"100%",maxWidth:420,padding:"36px 32px"}}>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",marginBottom:28}}>
+          <Logo size={54}/>
+          <div style={{fontWeight:800,fontSize:"1.5rem",color:NAVY,marginTop:10}}>EventClub</div>
+          <div style={{fontSize:".8rem",color:"#6b7280",marginTop:2}}>Valencia Isles HOA</div>
+        </div>
+
+        {mode==="login"&&(
+          <div className="form-grid">
+            <div><label>Email Address</label><input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@email.com" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            <div><label>Password</label><input type="password" value={form.password} onChange={e=>set("password",e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+            {msg.text&&<div style={{fontSize:".8rem",padding:"10px 14px",borderRadius:8,background:msg.ok?"#d1fae5":"#fee2e2",color:msg.ok?"#065f46":"#991b1b"}}>{msg.text}</div>}
+            <button className="btn-primary" style={{width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={doLogin} disabled={loading}>
+              {loading?<span className="spin"/>:"Sign In"}
+            </button>
+            <div style={{textAlign:"center",fontSize:".82rem",color:"#6b7280",borderTop:"1px solid #e5e7eb",paddingTop:14}}>
+              Don't have an account?{" "}
+              <button onClick={()=>{setMode("signup");setMsg({text:"",ok:false});}} style={{background:"none",color:NAVY,fontWeight:700,border:"none",cursor:"pointer",textDecoration:"underline"}}>Sign Up</button>
+            </div>
+          </div>
+        )}
+
+        {mode==="signup"&&(
+          <div className="form-grid">
+            <div style={{background:"#f0f4ff",border:"1px solid #c7d2fe",borderRadius:8,padding:"10px 14px",fontSize:".79rem",color:"#3730a3"}}>
+              💡 If your club is already in the system, enter your exact club name and we'll link your account to it automatically.
+            </div>
+            <div><label>Club or Committee Name *</label><input value={form.club} onChange={e=>set("club",e.target.value)} placeholder="e.g. Card Club, Welcoming Committee…"/></div>
+            <div><label>Account Type</label>
+              <select value={form.role} onChange={e=>set("role",e.target.value)}>
+                <option value="club">Club Representative</option>
+                <option value="committee">Committee Member</option>
+                <option value="management">Management Team</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+            <div><label>Email Address *</label><input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@email.com"/></div>
+            <div className="form-row">
+              <div><label>Password *</label><input type="password" value={form.password} onChange={e=>set("password",e.target.value)} placeholder="Min. 6 characters"/></div>
+              <div><label>Confirm Password *</label><input type="password" value={form.confirm} onChange={e=>set("confirm",e.target.value)} placeholder="Repeat password"/></div>
+            </div>
+            {["management","staff"].includes(form.role)&&(
+              <div style={{background:"#fef3c7",border:"1px solid #fbbf24",borderRadius:8,padding:"10px 14px",fontSize:".79rem",color:"#92400e"}}>
+                ⏳ Management & Staff accounts require director approval before access is granted.
+              </div>
+            )}
+            {msg.text&&<div style={{fontSize:".8rem",padding:"10px 14px",borderRadius:8,background:msg.ok?"#d1fae5":"#fee2e2",color:msg.ok?"#065f46":"#991b1b"}}>{msg.text}</div>}
+            <button className="btn-primary" style={{width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={doSignup} disabled={loading}>
+              {loading?<span className="spin"/>:"Create Account"}
+            </button>
+            <div style={{textAlign:"center",fontSize:".82rem",color:"#6b7280"}}>
+              Already have an account?{" "}
+              <button onClick={()=>{setMode("login");setMsg({text:"",ok:false});}} style={{background:"none",color:NAVY,fontWeight:700,border:"none",cursor:"pointer",textDecoration:"underline"}}>Sign In</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── CONFLICT DETECTION ──
+function detectConflicts(newEv, allEvents, rooms, eventTypes){
+  const conflicts=[];
+  const room=rooms.find(r=>r.name===newEv.room);
+  const evType=eventTypes.find(t=>t.name===newEv.type);
+
+  // Room spacing
+  if(room&&!newEv.is_off_site){
+    const sd=parseInt(room.spacing_days)||0;
+    allEvents.filter(e=>e.status!=="cancelled"&&e.room===newEv.room&&e.id!==newEv.id).forEach(e=>{
+      const diff=Math.abs((new Date(newEv.date)-new Date(e.date))/86400000);
+      if(e.date===newEv.date){
+        if(newEv.start_time<e.end_time&&newEv.end_time>e.start_time)
+          conflicts.push({type:"overlap",msg:`Time overlap with "${e.title}" (${e.start_time}–${e.end_time})`});
+        else if(sd===1)
+          conflicts.push({type:"spacing",msg:`${room.name} doesn't allow same-day bookings`});
+      } else if(sd>1&&diff<sd){
+        conflicts.push({type:"spacing",msg:`${room.name} needs ${sd} days between events — "${e.title}" is on ${e.date} (${Math.round(diff)}d gap)`});
+      }
+    });
+  }
+
+  // Event type spacing
+  if(evType&&(evType.spacing_days||0)>0){
+    const sd=parseInt(evType.spacing_days);
+    allEvents.filter(e=>e.status!=="cancelled"&&e.type===newEv.type&&e.id!==newEv.id).forEach(e=>{
+      const diff=Math.abs((new Date(newEv.date)-new Date(e.date))/86400000);
+      if(diff<sd)
+        conflicts.push({type:"type_spacing",msg:`"${evType.name}" events need ${sd} days apart — "${e.title}" is on ${e.date} (${Math.round(diff)}d gap)`});
+    });
+  }
+
+  // Capacity warning
+  if(room&&room.capacity>0&&parseInt(newEv.attendance)>room.capacity)
+    conflicts.push({type:"capacity",warning:true,msg:`Attendance (${newEv.attendance}) exceeds ${room.name} capacity (${room.capacity}). Consider a larger room.`});
+
+  return conflicts;
+}
+
+function findAlternativeDates(newEv, allEvents, rooms, eventTypes, count=3){
+  const suggestions=[];
+  const check=new Date(newEv.date+"T00:00:00");
+  check.setDate(check.getDate()+1);
+  let tries=0;
+  while(suggestions.length<count&&tries<120){
+    const ds=check.toISOString().split("T")[0];
+    const test={...newEv,date:ds};
+    const cf=detectConflicts(test,allEvents,rooms,eventTypes).filter(c=>!c.warning);
+    if(cf.length===0)suggestions.push(ds);
+    check.setDate(check.getDate()+1);
+    tries++;
+  }
+  return suggestions;
+}
+
+function buildRecurringDates(startDate, recurrence, endDate){
+  const dates=[];
+  if(!recurrence||recurrence==="none")return[startDate];
+  const cur=new Date(startDate+"T00:00:00");
+  const end=new Date((endDate||startDate)+"T00:00:00");
+  const maxEvents=52;
+  while(cur<=end&&dates.length<maxEvents){
+    dates.push(cur.toISOString().split("T")[0]);
+    if(recurrence==="weekly")cur.setDate(cur.getDate()+7);
+    else if(recurrence==="biweekly")cur.setDate(cur.getDate()+14);
+    else if(recurrence==="monthly")cur.setMonth(cur.getMonth()+1);
+    else break;
+  }
+  return dates;
+}
+
+// ── CALENDAR VIEW ──
+function CalendarView({events,eventTypes,onSelect}){
+  const today=new Date();
+  const[month,setMonth]=useState(today.getMonth());
+  const[year,setYear]=useState(today.getFullYear());
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const cells=[...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
+  while(cells.length%7!==0)cells.push(null);
+
+  const approved=useMemo(()=>events.filter(e=>e.status==="approved"),[events]);
+  const evsByDay=useMemo(()=>{
+    const m={};
+    approved.forEach(e=>{
+      const d=new Date(e.date+"T00:00:00");
+      if(d.getFullYear()===year&&d.getMonth()===month){
+        const k=d.getDate();
+        if(!m[k])m[k]=[];
+        m[k].push(e);
+      }
+    });
+    return m;
+  },[approved,year,month]);
+
+  const typeColor=t=>eventTypes.find(et=>et.name===t)?.color||GOLD;
+  const prevM=()=>month===0?(setMonth(11),setYear(y=>y-1)):setMonth(m=>m-1);
+  const nextM=()=>month===11?(setMonth(0),setYear(y=>y+1)):setMonth(m=>m+1);
+  const upcoming=approved.filter(e=>new Date(e.date+"T23:59:59")>=today).sort((a,b)=>a.date>b.date?1:-1);
+
+  return(
+    <div className="fade">
+      <div className="card" style={{padding:16,marginBottom:16}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <button className="btn-ghost" style={{padding:"8px 14px"}} onClick={prevM}>←</button>
+          <div style={{fontWeight:800,fontSize:"1.05rem",color:NAVY}}>{MONTHS[month]} {year}</div>
+          <button className="btn-ghost" style={{padding:"8px 14px"}} onClick={nextM}>→</button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+          {DAYS_SHORT.map(d=><div key={d} style={{textAlign:"center",fontSize:".68rem",fontWeight:700,color:"#9ca3af",padding:"4px 0"}}>{d}</div>)}
+          {cells.map((day,i)=>{
+            if(!day)return<div key={i} style={{minHeight:52}}/>;
+            const isToday=day===today.getDate()&&month===today.getMonth()&&year===today.getFullYear();
+            const dayEvs=evsByDay[day]||[];
+            return(
+              <div key={i} style={{borderRadius:8,padding:3,minHeight:52,border:isToday?`2px solid ${GOLD}`:"1px solid #f0f0f0",background:isToday?"#fffbeb":"#fff"}}>
+                <div style={{fontSize:".7rem",fontWeight:isToday?800:500,color:isToday?GOLD:NAVY,textAlign:"right",paddingRight:3}}>{day}</div>
+                {dayEvs.slice(0,2).map(e=>(
+                  <div key={e.id} onClick={()=>onSelect(e)} title={e.title} style={{background:typeColor(e.type),color:"#fff",borderRadius:3,padding:"1px 4px",fontSize:".58rem",fontWeight:600,marginTop:2,cursor:"pointer",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>
+                    {e.title}
+                  </div>
+                ))}
+                {dayEvs.length>2&&<div style={{fontSize:".56rem",color:"#9ca3af",textAlign:"center"}}>+{dayEvs.length-2}</div>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div>
+        <div className="section-title">Upcoming Events</div>
+        {upcoming.length===0&&<div className="card" style={{padding:28,textAlign:"center",color:"#9ca3af"}}>No upcoming events scheduled.</div>}
+        {upcoming.slice(0,12).map(e=>(
+          <div key={e.id} className="card" style={{padding:14,marginBottom:8,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
+            <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type),flexShrink:0}}/>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+              <div style={{fontSize:".76rem",color:"#6b7280",marginTop:1}}>{e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
+              <div style={{fontSize:".73rem",color:"#9ca3af"}}>{e.club}</div>
+            </div>
+            <span className="badge b-green">✓</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── PRINT CALENDAR ──
+function PrintCalendar({events,month,year,onClose}){
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const cells=[...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
+  while(cells.length%7!==0)cells.push(null);
+
+  const approved=events.filter(e=>e.status==="approved");
+  const evsByDay={};
+  approved.forEach(e=>{
+    const d=new Date(e.date+"T00:00:00");
+    if(d.getFullYear()===year&&d.getMonth()===month){
+      const k=d.getDate();
+      if(!evsByDay[k])evsByDay[k]=[];
+      evsByDay[k].push(e);
+    }
+  });
+
+  return(
+    <Overlay onClose={onClose} wide>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+        <h2 style={{color:NAVY,fontWeight:800}}>{MONTHS[month]} {year} — Event Calendar</h2>
+        <div style={{display:"flex",gap:8}}>
+          <button className="btn-primary" onClick={()=>window.print()} style={{padding:"8px 16px"}}>🖨 Print</button>
+          <button className="btn-ghost" onClick={onClose}>Close</button>
+        </div>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,background:"#e5e7eb",border:"1px solid #e5e7eb",borderRadius:8,overflow:"hidden"}}>
+        {DAYS_SHORT.map(d=>(
+          <div key={d} style={{background:NAVY,color:"#fff",textAlign:"center",padding:"8px 4px",fontSize:".75rem",fontWeight:700}}>{d}</div>
+        ))}
+        {cells.map((day,i)=>(
+          <div key={i} style={{background:"#fff",minHeight:90,padding:6,verticalAlign:"top"}}>
+            {day&&<>
+              <div style={{fontWeight:700,fontSize:".8rem",color:NAVY,marginBottom:4}}>{day}</div>
+              {(evsByDay[day]||[]).map(e=>(
+                <div key={e.id} style={{background:"#dbeafe",borderLeft:`3px solid ${NAVY}`,padding:"2px 5px",borderRadius:3,marginBottom:3,fontSize:".68rem",fontWeight:600,color:NAVY}}>
+                  {e.start_time} {e.title}
+                </div>
+              ))}
+            </>}
+          </div>
+        ))}
+      </div>
+    </Overlay>
+  );
+}
+
+// ── SUBMIT EVENT ──
+function SubmitEvent({user,events,rooms,eventTypes,addToast,onRefresh}){
+  const blank={title:"",room:"",date:"",start_time:"",end_time:"",attendance:"",type:"",setup_style:"",notes:"",is_off_site:false,off_site_address:"",recurrence:"none",recurrence_end:""};
+  const blankAV={micsNeeded:false,micCount:1,screen:"None",podiumNeeded:false,podiumPos:"Center",t6:0,t8:0,tRound:0,chairsPer:8,tBanquet:0,tCheckin:0,extraChairs:0,avNotes:""};
+  const[form,setForm]=useState({...blank});
+  const[av,setAVState]=useState({...blankAV});
+  const[conflicts,setConflicts]=useState([]);
+  const[altDates,setAltDates]=useState([]);
+  const[loading,setLoading]=useState(false);
+  const set=(k,v)=>setForm(p=>({...p,[k]:v}));
+  const setAV=(k,v)=>setAVState(p=>({...p,[k]:v}));
+
+  useEffect(()=>{
+    if(form.room&&form.date&&form.start_time&&form.end_time&&form.type){
+      const cf=detectConflicts({...form,id:null},events,rooms,eventTypes);
+      setConflicts(cf);
+      const blocking=cf.filter(c=>!c.warning);
+      if(blocking.length>0) setAltDates(findAlternativeDates({...form,id:null},events,rooms,eventTypes));
+      else setAltDates([]);
+    } else { setConflicts([]); setAltDates([]); }
+  },[form.room,form.date,form.start_time,form.end_time,form.type,events,rooms,eventTypes]);
+
+  const totalChairs=useMemo(()=>(av.tRound*av.chairsPer)+(av.tBanquet*10)+(av.t6*6)+(av.t8*8)+(av.tCheckin*2)+parseInt(av.extraChairs||0),[av]);
+  const selectedRoom=rooms.find(r=>r.name===form.room);
+  const blockingConflicts=conflicts.filter(c=>!c.warning);
+  const warnings=conflicts.filter(c=>c.warning);
+
+  const buildNotes=()=>{
+    const av_lines=[];
+    if(form.setup_style)av_lines.push(`Setup: ${form.setup_style}`);
+    if(av.micsNeeded)av_lines.push(`Microphones: ${av.micCount}`);
+    if(av.podiumNeeded)av_lines.push(`Podium: ${av.podiumPos}`);
+    if(av.screen!=="None")av_lines.push(`Screen/Projector: ${av.screen}`);
+    if(av.t6>0)av_lines.push(`6ft Tables: ${av.t6}`);
+    if(av.t8>0)av_lines.push(`8ft Tables: ${av.t8}`);
+    if(av.tRound>0)av_lines.push(`Round Tables: ${av.tRound} (${av.chairsPer} chairs each)`);
+    if(av.tBanquet>0)av_lines.push(`Banquet Tables: ${av.tBanquet}`);
+    if(av.tCheckin>0)av_lines.push(`Check-in Tables: ${av.tCheckin}`);
+    if(av.extraChairs>0)av_lines.push(`Extra Chairs: ${av.extraChairs}`);
+    if(totalChairs>0)av_lines.push(`Total Chairs: ${totalChairs}`);
+    if(av.avNotes)av_lines.push(`A/V Notes: ${av.avNotes}`);
+    const avSection=av_lines.length>0?"\n\n--- A/V & Equipment ---\n"+av_lines.join("\n"):"";
+    return(form.notes||"")+avSection;
+  };
+
+  const submit=async()=>{
+    if(!form.title||(!form.is_off_site&&!form.room)||!form.date||!form.start_time||!form.end_time||!form.type)
+      return addToast("Please fill in all required fields","error");
+    if(blockingConflicts.length>0)return addToast("Resolve conflicts before submitting","error");
+    setLoading(true);
+    const dates=buildRecurringDates(form.date,form.recurrence,form.recurrence_end);
+    let errorCount=0;
+    for(const d of dates){
+      const{error}=await sb.from("events").insert({
+        title:form.title+(dates.length>1?` (${d})`:""),
+        room:form.is_off_site?"Off-Site":form.room,
+        date:d,
+        start_time:form.start_time,
+        end_time:form.end_time,
+        type:form.type,
+        attendance:parseInt(form.attendance)||0,
+        status:"approved",
+        submitted_by:user.username||user.email||user.club,
+        club:user.club,
+        notes:buildNotes(),
+        is_off_site:form.is_off_site,
+        off_site_address:form.off_site_address||"",
+      });
+      if(error)errorCount++;
+    }
+    if(errorCount>0){setLoading(false);return addToast(`${errorCount} event(s) failed to save. Check fields.`,"error");}
+
+    // Email notification to director
+    sendEmail(EMAILJS_TPL_SUBMIT,{
+      to_email:DIRECTOR_EMAIL,
+      club_name:user.club,
+      event_title:form.title,
+      event_date:form.date,
+      event_time:`${form.start_time}–${form.end_time}`,
+      event_room:form.room||"Off-Site",
+      event_type:form.type,
+      attendance:form.attendance,
+    });
+
+    setLoading(false);
+    addToast(`✅ ${dates.length>1?dates.length+" recurring events":"Event"} submitted & auto-approved!`,"success");
+    setForm({...blank});setAVState({...blankAV});
+    onRefresh();
+  };
+
+  return(
+    <div className="fade">
+      <div className="section-title">Submit Event Request</div>
+      <div className="card" style={{padding:20}}>
+        <div className="form-grid">
+          <div><label>Event Title *</label><input value={form.title} onChange={e=>set("title",e.target.value)} placeholder="e.g. Monthly Card Tournament"/></div>
+
+          <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontWeight:500,fontSize:".875rem",color:"#374151"}}>
+            <input type="checkbox" style={{width:"auto",margin:0}} checked={form.is_off_site} onChange={e=>set("is_off_site",e.target.checked)}/>
+            Off-Site Event
+          </label>
+
+          {!form.is_off_site?(
+            <div><label>Room *</label>
+              <select value={form.room} onChange={e=>set("room",e.target.value)}>
+                <option value="">Select a room…</option>
+                {rooms.map(r=><option key={r.id} value={r.name}>{r.name}{r.capacity?` (max ${r.capacity})`:""}</option>)}
+              </select>
+            </div>
+          ):(
+            <div><label>Off-Site Address *</label><input value={form.off_site_address} onChange={e=>set("off_site_address",e.target.value)} placeholder="Full address or venue name"/></div>
+          )}
+
+          {selectedRoom&&selectedRoom.spacing_days>0&&(
+            <div style={{background:"#dbeafe",border:"1px solid #93c5fd",borderRadius:8,padding:"10px 14px",fontSize:".8rem",color:"#1e40af"}}>
+              ℹ️ <strong>{selectedRoom.name}</strong> requires {selectedRoom.spacing_days===1?"no same-day bookings":`${selectedRoom.spacing_days} days between events`}.
+            </div>
+          )}
+
+          <div className="form-row">
+            <div><label>Date *</label><input type="date" value={form.date} onChange={e=>set("date",e.target.value)}/></div>
+            <div><label>Event Type *</label>
+              <select value={form.type} onChange={e=>set("type",e.target.value)}>
+                <option value="">Select type…</option>
+                {eventTypes.map(t=><option key={t.id} value={t.name}>{t.name}{t.spacing_days>0?` (${t.spacing_days}d apart)`:""}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div><label>Start Time *</label><input type="time" value={form.start_time} onChange={e=>set("start_time",e.target.value)}/></div>
+            <div><label>End Time *</label><input type="time" value={form.end_time} onChange={e=>set("end_time",e.target.value)}/></div>
+          </div>
+
+          <div className="form-row">
+            <div><label>Expected Attendance</label><input type="number" value={form.attendance} onChange={e=>set("attendance",e.target.value)} min="1" placeholder="50"/></div>
+            <div><label>Setup Style</label>
+              <select value={form.setup_style} onChange={e=>set("setup_style",e.target.value)}>
+                <option value="">Select setup…</option>
+                {SETUPS.map(s=><option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div><label>Recurrence</label>
+              <select value={form.recurrence} onChange={e=>set("recurrence",e.target.value)}>
+                {RECURRENCE_OPTS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
+              </select>
+            </div>
+            {form.recurrence!=="none"&&(
+              <div><label>Repeat Until</label><input type="date" value={form.recurrence_end} onChange={e=>set("recurrence_end",e.target.value)}/></div>
+            )}
+          </div>
+
+          {form.recurrence!=="none"&&form.date&&form.recurrence_end&&(
+            <div style={{background:"#f0f4ff",borderRadius:8,padding:"10px 14px",fontSize:".8rem",color:NAVY}}>
+              📅 This will create <strong>{buildRecurringDates(form.date,form.recurrence,form.recurrence_end).length}</strong> events
+            </div>
+          )}
+
+          {warnings.length>0&&(
+            <div style={{background:"#ffedd5",border:"1px solid #fed7aa",borderRadius:8,padding:"12px 14px"}}>
+              {warnings.map((c,i)=><div key={i} style={{fontSize:".8rem",color:"#c2410c"}}>⚠️ {c.msg}</div>)}
+            </div>
+          )}
+
+          {blockingConflicts.length>0&&(
+            <div style={{background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"12px 14px"}}>
+              <div style={{fontWeight:700,fontSize:".82rem",color:"#991b1b",marginBottom:6}}>🚫 Conflicts Detected</div>
+              {blockingConflicts.map((c,i)=><div key={i} style={{fontSize:".78rem",color:"#991b1b",marginBottom:2}}>• {c.msg}</div>)}
+              {altDates.length>0&&(
+                <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #fca5a5"}}>
+                  <div style={{fontSize:".78rem",fontWeight:700,color:"#991b1b",marginBottom:6}}>💡 Available alternative dates:</div>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                    {altDates.map(d=>(
+                      <button key={d} onClick={()=>set("date",d)} style={{background:"#fff",border:"1.5px solid #991b1b",color:"#991b1b",borderRadius:8,padding:"5px 12px",fontSize:".78rem",fontWeight:700,cursor:"pointer"}}>
+                        {d}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div><label>Notes / Special Instructions</label><textarea value={form.notes} onChange={e=>set("notes",e.target.value)} rows={2} placeholder="Any additional details…"/></div>
+        </div>
+
+        {/* A/V Section */}
+        <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #e5e7eb"}}>
+          <div style={{fontWeight:700,color:NAVY,marginBottom:12,fontSize:"1rem"}}>🎤 A/V & Equipment Setup</div>
+          <div className="form-grid">
+            <div className="form-row">
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontWeight:500,fontSize:".875rem",color:"#374151"}}>
+                <input type="checkbox" style={{width:"auto",margin:0}} checked={av.micsNeeded} onChange={e=>setAV("micsNeeded",e.target.checked)}/>
+                Microphones{av.micsNeeded&&<input type="number" value={av.micCount} onChange={e=>setAV("micCount",parseInt(e.target.value)||1)} style={{width:60,marginLeft:6}} min={1}/>}
+              </label>
+              <label style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontWeight:500,fontSize:".875rem",color:"#374151"}}>
+                <input type="checkbox" style={{width:"auto",margin:0}} checked={av.podiumNeeded} onChange={e=>setAV("podiumNeeded",e.target.checked)}/>
+                Podium{av.podiumNeeded&&<select value={av.podiumPos} onChange={e=>setAV("podiumPos",e.target.value)} style={{flex:1,marginLeft:4}}><option>Left</option><option>Center</option><option>Right</option></select>}
+              </label>
+            </div>
+            <div className="form-row">
+              <div><label>Screen / Projector</label>
+                <select value={av.screen} onChange={e=>setAV("screen",e.target.value)}>
+                  <option>None</option><option>Screen Only</option><option>Projector Only</option><option>Both</option>
+                </select>
+              </div>
+              <div><label>6ft Tables</label><input type="number" value={av.t6} onChange={e=>setAV("t6",parseInt(e.target.value)||0)} min={0}/></div>
+            </div>
+            <div className="form-row">
+              <div><label>8ft Tables</label><input type="number" value={av.t8} onChange={e=>setAV("t8",parseInt(e.target.value)||0)} min={0}/></div>
+              <div><label>Round Tables</label><input type="number" value={av.tRound} onChange={e=>setAV("tRound",parseInt(e.target.value)||0)} min={0}/></div>
+            </div>
+            <div className="form-row">
+              <div><label>Banquet Tables</label><input type="number" value={av.tBanquet} onChange={e=>setAV("tBanquet",parseInt(e.target.value)||0)} min={0}/></div>
+              <div><label>Extra Chairs</label><input type="number" value={av.extraChairs} onChange={e=>setAV("extraChairs",parseInt(e.target.value)||0)} min={0}/></div>
+            </div>
+            <div style={{background:"#f0f4ff",borderRadius:8,padding:"10px 14px",fontSize:".82rem",color:NAVY,fontWeight:600}}>Total chair count: <strong>{totalChairs}</strong></div>
+            <div><label>A/V Notes</label><textarea value={av.avNotes} onChange={e=>setAV("avNotes",e.target.value)} rows={2} placeholder="Any special A/V or setup requirements…"/></div>
+          </div>
+        </div>
+
+        <button className="btn-primary" style={{marginTop:20,width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={submit} disabled={loading||blockingConflicts.length>0}>
+          {loading?<span className="spin"/>:blockingConflicts.length>0?"🚫 Resolve Conflicts First":"Submit Event Request"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── MY EVENTS ──
+function MyEvents({user,events,eventTypes,onSelect}){
+  const mine=events.filter(e=>e.club===user.club).sort((a,b)=>b.date>a.date?1:-1);
+  const typeColor=t=>eventTypes.find(et=>et.name===t)?.color||GOLD;
+  const statusBadge=s=>s==="approved"?<span className="badge b-green">✅ Approved</span>:s==="pending"?<span className="badge b-yellow">⏳ Pending</span>:<span className="badge b-red">❌ Cancelled</span>;
+  return(
+    <div className="fade">
+      <div className="section-title">My Events ({mine.length})</div>
+      {mine.length===0&&<div className="card" style={{padding:32,textAlign:"center",color:"#9ca3af"}}>No events submitted yet. Go to Submit to create your first event!</div>}
+      {mine.map(e=>(
+        <div key={e.id} className="card" style={{padding:14,marginBottom:10,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
+          <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type),flexShrink:0}}/>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+            <div style={{fontSize:".76rem",color:"#6b7280",marginTop:1}}>{e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
+          </div>
+          {statusBadge(e.status)}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── CLUB DIRECTORY ──
+function ClubDirectory({clubUsers}){
+  const[search,setSearch]=useState("");
+  const[filter,setFilter]=useState("all");
+  const clubs=clubUsers
+    .filter(u=>u.role!=="director"&&u.account_status!=="inactive")
+    .filter(u=>filter==="all"||(filter==="clubs"&&u.type==="club")||(filter==="committees"&&u.type==="committee"))
+    .filter(u=>!search||u.club?.toLowerCase().includes(search.toLowerCase())||u.president?.toLowerCase().includes(search.toLowerCase()))
+    .sort((a,b)=>a.club>b.club?1:-1);
+
+  return(
+    <div className="fade">
+      <div className="section-title">Club & Committee Directory</div>
+      <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search clubs…" style={{flex:1,minWidth:160}}/>
+        {["all","clubs","committees"].map(f=>(
+          <button key={f} onClick={()=>setFilter(f)} style={{padding:"8px 16px",borderRadius:20,fontWeight:700,fontSize:".8rem",border:"none",cursor:"pointer",background:filter===f?NAVY:"#e5e7eb",color:filter===f?"#fff":NAVY,textTransform:"capitalize"}}>{f==="all"?"All":f==="clubs"?"Clubs":"Committees"}</button>
+        ))}
+      </div>
+      {clubs.length===0&&<div className="card" style={{padding:28,textAlign:"center",color:"#9ca3af"}}>No results found.</div>}
+      <div style={{display:"grid",gap:10,gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))"}}>
+        {clubs.map(u=>(
+          <div key={u.id} className="card" style={{padding:16}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+              <div style={{fontWeight:800,color:NAVY,fontSize:".95rem"}}>{u.club}</div>
+              <span className={`badge ${u.type==="committee"?"b-purple":"b-blue"}`}>{u.type}</span>
+            </div>
+            {u.president&&<div style={{fontSize:".8rem",color:"#374151",marginBottom:4}}>👤 {u.president}</div>}
+            {u.phone&&<div style={{fontSize:".8rem",color:"#374151",marginBottom:4}}>📞 {u.phone}</div>}
+            {u.email&&<div style={{fontSize:".8rem",color:NAVY,marginBottom:4}}>✉️ {u.email}</div>}
+            {u.meeting_schedule&&<div style={{fontSize:".78rem",color:"#6b7280",marginTop:6,paddingTop:6,borderTop:"1px solid #f0f0f0"}}>📅 {u.meeting_schedule}</div>}
+            {u.meeting_room&&<div style={{fontSize:".78rem",color:"#6b7280"}}>🏛 {u.meeting_room}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── DASHBOARD ──
+function Dashboard({events,eventTypes,rooms,clubUsers,onSelect,addToast,onRefresh}){
+  const today=new Date();
+  const pending=events.filter(e=>e.status==="pending");
+  const upcoming=events.filter(e=>e.status==="approved"&&new Date(e.date+"T23:59:59")>=today).sort((a,b)=>a.date>b.date?1:-1);
+  const pendingStaff=clubUsers.filter(u=>u.account_status==="pending");
+  const typeColor=t=>eventTypes.find(et=>et.name===t)?.color||GOLD;
+  const[editEv,setEditEv]=useState(null);
+  const[showPrint,setShowPrint]=useState(false);
+  const today2=new Date();
+  const[printMonth,setPrintMonth]=useState(today2.getMonth());
+  const[printYear,setPrintYear]=useState(today2.getFullYear());
+
+  const approveEvent=async id=>{
+    const ev=events.find(e=>e.id===id);
+    await sb.from("events").update({status:"approved"}).eq("id",id);
+    addToast("✅ Event approved","success");
+    if(ev){
+      const club=clubUsers.find(u=>u.club===ev.club);
+      sendEmail(EMAILJS_TPL_APPROVE,{
+        to_email:club?.email||"",
+        club_name:ev.club,
+        event_title:ev.title,
+        event_date:ev.date,
+        event_time:`${ev.start_time}–${ev.end_time}`,
+        event_room:ev.room,
+      });
+    }
+    onRefresh();
+  };
+  const rejectEvent=async id=>{await sb.from("events").update({status:"cancelled"}).eq("id",id);addToast("Event rejected","error");onRefresh();};
+  const cancelEvent=async id=>{if(!confirm("Cancel this event?"))return;await sb.from("events").update({status:"cancelled"}).eq("id",id);addToast("Event cancelled","error");onRefresh();};
+  const approveStaff=async u=>{await sb.from("club_users").update({account_status:"active"}).eq("id",u.id);addToast(`${u.club} approved ✅`,"success");onRefresh();};
+  const rejectStaff=async u=>{await sb.from("club_users").update({account_status:"inactive"}).eq("id",u.id);addToast(`${u.club} rejected`,"error");onRefresh();};
+
+  const saveEdit=async()=>{
+    if(!editEv)return;
+    await sb.from("events").update({
+      title:editEv.title,room:editEv.room,date:editEv.date,
+      start_time:editEv.start_time,end_time:editEv.end_time,
+      attendance:parseInt(editEv.attendance)||0,notes:editEv.notes,status:editEv.status,
+    }).eq("id",editEv.id);
+    addToast("Event updated ✅","success");setEditEv(null);onRefresh();
+  };
+
+  const exportCSV=()=>{
+    const h=["Title","Club","Room","Date","Start","End","Type","Attendance","Status","Notes"];
+    const rows=events.map(e=>[e.title,e.club,e.room,e.date,e.start_time,e.end_time,e.type,e.attendance,e.status,e.notes||""]);
+    const csv=[h,...rows].map(r=>r.map(v=>`"${String(v||"").replace(/"/g,'""')}"`).join(",")).join("\n");
+    const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv);a.download="eventclub-export.csv";a.click();
+  };
+
+  return(
+    <div className="fade">
+      {showPrint&&<PrintCalendar events={events} month={printMonth} year={printYear} onClose={()=>setShowPrint(false)}/>}
+
+      <div className="stat-grid">
+        {[["📅","Upcoming",upcoming.length,NAVY],["⏳","Pending",pending.length,"#92400e"],["👥","Staff Requests",pendingStaff.length,"#5b21b6"],["📋","Total Events",events.length,"#065f46"]].map(([icon,label,count,color])=>(
+          <div key={label} className="card" style={{padding:14,textAlign:"center"}}>
+            <div style={{fontSize:"1.3rem"}}>{icon}</div>
+            <div style={{fontSize:"1.5rem",fontWeight:800,color}}>{count}</div>
+            <div style={{fontSize:".7rem",color:"#6b7280",marginTop:2}}>{label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Pending Staff Accounts */}
+      {pendingStaff.length>0&&(
+        <div style={{marginBottom:20}}>
+          <div className="section-title">👥 Pending Account Requests</div>
+          {pendingStaff.map(u=>(
+            <div key={u.id} className="card" style={{padding:14,marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:700,color:NAVY}}>{u.club}</div>
+                <div style={{fontSize:".76rem",color:"#6b7280"}}>{u.email||u.username} · <span className="badge b-purple">{u.type}</span></div>
+              </div>
+              <button className="btn-danger" style={{padding:"7px 14px",fontSize:".8rem"}} onClick={()=>rejectStaff(u)}>Reject</button>
+              <button className="btn-primary" style={{padding:"7px 14px",fontSize:".8rem"}} onClick={()=>approveStaff(u)}>✅ Approve</button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Pending Events */}
+      {pending.length>0&&(
+        <div style={{marginBottom:20}}>
+          <div className="section-title">⏳ Pending Event Approval</div>
+          {pending.map(e=>(
+            <div key={e.id} className="card" style={{padding:16,marginBottom:10}}>
+              <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:12}}>
+                <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type),flexShrink:0}}/>
+                <div style={{flex:1,cursor:"pointer"}} onClick={()=>onSelect(e)}>
+                  <div style={{fontWeight:700,color:NAVY}}>{e.title}</div>
+                  <div style={{fontSize:".77rem",color:"#6b7280",marginTop:2}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
+                </div>
+              </div>
+              <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+                <button className="btn-danger" style={{padding:"7px 16px",fontSize:".8rem"}} onClick={()=>rejectEvent(e.id)}>✗ Reject</button>
+                <button className="btn-primary" style={{padding:"7px 16px",fontSize:".8rem"}} onClick={()=>approveEvent(e.id)}>✅ Approve</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* All Upcoming Events */}
+      <div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+          <div className="section-title" style={{margin:0}}>📅 Upcoming Events</div>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn-gold" style={{padding:"7px 14px",fontSize:".78rem"}} onClick={()=>setShowPrint(true)}>🖨 Print Calendar</button>
+            <button className="btn-ghost" style={{fontSize:".78rem",padding:"7px 14px"}} onClick={exportCSV}>⬇ CSV</button>
+          </div>
+        </div>
+        {upcoming.length===0&&<div className="card" style={{padding:24,textAlign:"center",color:"#9ca3af"}}>No upcoming approved events.</div>}
+        {upcoming.map(e=>(
+          <div key={e.id} className="card" style={{padding:14,marginBottom:8,display:"flex",gap:10,alignItems:"center"}}>
+            <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type),flexShrink:0}}/>
+            <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>onSelect(e)}>
+              <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+              <div style={{fontSize:".76rem",color:"#6b7280"}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
+            </div>
+            <div style={{display:"flex",gap:6,flexShrink:0}}>
+              <button className="btn-ghost" style={{padding:"5px 10px",fontSize:".78rem"}} onClick={()=>setEditEv({...e})}>✏️</button>
+              <button className="btn-danger" style={{padding:"5px 10px",fontSize:".78rem"}} onClick={()=>cancelEvent(e.id)}>✗</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Edit Event Modal */}
+      {editEv&&(
+        <Overlay onClose={()=>setEditEv(null)} wide>
+          <h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>Edit Event</h3>
+          <div className="form-grid">
+            <div><label>Title</label><input value={editEv.title} onChange={e=>setEditEv(p=>({...p,title:e.target.value}))}/></div>
+            <div className="form-row">
+              <div><label>Room</label>
+                <select value={editEv.room} onChange={e=>setEditEv(p=>({...p,room:e.target.value}))}>
+                  {rooms.map(r=><option key={r.id} value={r.name}>{r.name}</option>)}
+                </select>
+              </div>
+              <div><label>Date</label><input type="date" value={editEv.date} onChange={e=>setEditEv(p=>({...p,date:e.target.value}))}/></div>
+            </div>
+            <div className="form-row">
+              <div><label>Start Time</label><input type="time" value={editEv.start_time} onChange={e=>setEditEv(p=>({...p,start_time:e.target.value}))}/></div>
+              <div><label>End Time</label><input type="time" value={editEv.end_time} onChange={e=>setEditEv(p=>({...p,end_time:e.target.value}))}/></div>
+            </div>
+            <div className="form-row">
+              <div><label>Attendance</label><input type="number" value={editEv.attendance} onChange={e=>setEditEv(p=>({...p,attendance:e.target.value}))}/></div>
+              <div><label>Status</label>
+                <select value={editEv.status} onChange={e=>setEditEv(p=>({...p,status:e.target.value}))}>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+            <div><label>Notes</label><textarea value={editEv.notes||""} onChange={e=>setEditEv(p=>({...p,notes:e.target.value}))} rows={3}/></div>
+          </div>
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+            <button className="btn-ghost" onClick={()=>setEditEv(null)}>Cancel</button>
+            <button className="btn-primary" onClick={saveEdit}>Save Changes</button>
+          </div>
+        </Overlay>
+      )}
+    </div>
+  );
+}
+
+// ── SETTINGS ──
+function Settings({rooms,eventTypes,clubUsers,addToast,onRefresh}){
+  const[tab,setTab]=useState("rooms");
+  const[editRoom,setEditRoom]=useState(null);
+  const[editType,setEditType]=useState(null);
+
+  const saveRoom=async()=>{
+    if(!editRoom.name)return addToast("Room name required","error");
+    const p={name:editRoom.name,capacity:parseInt(editRoom.capacity)||0,spacing_days:parseInt(editRoom.spacing_days)||0};
+    if(editRoom.isNew)await sb.from("rooms").insert({id:crypto.randomUUID(),...p});
+    else await sb.from("rooms").update(p).eq("id",editRoom.id);
+    addToast("Room saved ✅","success");setEditRoom(null);onRefresh();
+  };
+
+  const saveType=async()=>{
+    if(!editType.name)return addToast("Name required","error");
+    const p={name:editType.name,color:editType.color||GOLD,spacing_days:parseInt(editType.spacing_days)||0};
+    if(editType.isNew)await sb.from("event_types").insert(p);
+    else await sb.from("event_types").update(p).eq("id",editType.id);
+    addToast("Event type saved ✅","success");setEditType(null);onRefresh();
+  };
+
+  return(
+    <div className="fade">
+      <div className="section-title">Settings</div>
+      <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+        {[["rooms","🏛 Rooms"],["types","🎨 Event Types"],["accounts","👥 Accounts"]].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 18px",borderRadius:20,fontWeight:700,fontSize:".82rem",border:"none",cursor:"pointer",background:tab===k?NAVY:"#e5e7eb",color:tab===k?"#fff":NAVY}}>{l}</button>
+        ))}
+      </div>
+
+      {tab==="rooms"&&(
+        <div>
+          <div className="card">
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>Room</th><th>Capacity</th><th>Room Spacing</th><th></th></tr></thead>
+                <tbody>
+                  {rooms.map(r=>(
+                    <tr key={r.id}>
+                      <td style={{fontWeight:700,color:NAVY}}>{r.name}</td>
+                      <td>{r.capacity||"—"}</td>
+                      <td><span className="badge b-blue">{SPACING_OPTS.find(o=>o.v===parseInt(r.spacing_days))?.l||`${r.spacing_days}d`}</span></td>
+                      <td><button className="btn-ghost" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setEditRoom({...r,spacing_days:parseInt(r.spacing_days)||0})}>Edit</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <button className="btn-primary" style={{marginTop:12}} onClick={()=>setEditRoom({isNew:true,name:"",capacity:0,spacing_days:0})}>+ Add Room</button>
+        </div>
+      )}
+
+      {tab==="types"&&(
+        <div>
+          <div className="card">
+            <div className="table-wrap">
+              <table>
+                <thead><tr><th>Event Type</th><th>Color</th><th>Type Spacing</th><th></th></tr></thead>
+                <tbody>
+                  {eventTypes.map(t=>(
+                    <tr key={t.id}>
+                      <td style={{fontWeight:700,color:NAVY}}>{t.name}</td>
+                      <td><div style={{width:28,height:28,borderRadius:6,background:t.color||GOLD,border:"1px solid #e5e7eb"}}/></td>
+                      <td><span className="badge b-purple">{SPACING_OPTS.find(o=>o.v===parseInt(t.spacing_days||0))?.l||"No restriction"}</span></td>
+                      <td><button className="btn-ghost" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setEditType({...t,spacing_days:parseInt(t.spacing_days)||0})}>Edit</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <button className="btn-primary" style={{marginTop:12}} onClick={()=>setEditType({isNew:true,name:"",color:GOLD,spacing_days:0})}>+ Add Type</button>
+        </div>
+      )}
+
+      {tab==="accounts"&&(
+        <div className="card">
+          <div className="table-wrap">
+            <table>
+              <thead><tr><th>Club / Account</th><th>Type</th><th>Email</th><th>Status</th></tr></thead>
+              <tbody>
+                {clubUsers.sort((a,b)=>a.club>b.club?1:-1).map(u=>(
+                  <tr key={u.id}>
+                    <td style={{fontWeight:700,color:NAVY}}>{u.club}{(u.role==="director"||u.is_admin)&&<span style={{marginLeft:6,fontSize:".7rem",background:GOLD,color:"#fff",padding:"2px 7px",borderRadius:10,fontWeight:700}}>Admin</span>}</td>
+                    <td><span className="badge b-purple">{u.type||u.role}</span></td>
+                    <td style={{fontSize:".78rem",color:"#6b7280"}}>{u.email||"—"}</td>
+                    <td><span className={`badge ${u.account_status==="active"||!u.account_status?"b-green":u.account_status==="pending"?"b-yellow":"b-red"}`}>{u.account_status||"active"}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {editRoom&&(
+        <Overlay onClose={()=>setEditRoom(null)}>
+          <h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>{editRoom.isNew?"Add Room":"Edit Room"}</h3>
+          <div className="form-grid">
+            <div><label>Room Name</label><input value={editRoom.name} onChange={e=>setEditRoom(p=>({...p,name:e.target.value}))}/></div>
+            <div><label>Capacity (people)</label><input type="number" value={editRoom.capacity||0} onChange={e=>setEditRoom(p=>({...p,capacity:parseInt(e.target.value)||0}))}/></div>
+            <div><label>Spacing Between Events</label>
+              <select value={editRoom.spacing_days||0} onChange={e=>setEditRoom(p=>({...p,spacing_days:parseInt(e.target.value)}))}>
+                {SPACING_OPTS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+            <button className="btn-ghost" onClick={()=>setEditRoom(null)}>Cancel</button>
+            <button className="btn-primary" onClick={saveRoom}>Save Room</button>
+          </div>
+        </Overlay>
+      )}
+
+      {editType&&(
+        <Overlay onClose={()=>setEditType(null)}>
+          <h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>{editType.isNew?"Add Event Type":"Edit Event Type"}</h3>
+          <div className="form-grid">
+            <div><label>Type Name</label><input value={editType.name} onChange={e=>setEditType(p=>({...p,name:e.target.value}))}/></div>
+            <div><label>Color</label><input type="color" value={editType.color||GOLD} onChange={e=>setEditType(p=>({...p,color:e.target.value}))}/></div>
+            <div><label>Spacing Between Same-Type Events</label>
+              <select value={editType.spacing_days||0} onChange={e=>setEditType(p=>({...p,spacing_days:parseInt(e.target.value)}))}>
+                {SPACING_OPTS.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
+              </select>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+            <button className="btn-ghost" onClick={()=>setEditType(null)}>Cancel</button>
+            <button className="btn-primary" onClick={saveType}>Save</button>
+          </div>
+        </Overlay>
+      )}
+    </div>
+  );
+}
+
+// ── EVENT MODAL ──
+function EventModal({ev,isAdmin,onClose,onApprove,onCancel,eventTypes}){
+  if(!ev)return null;
+  const typeColor=eventTypes.find(t=>t.name===ev.type)?.color||GOLD;
+  const addGCal=()=>{
+    const fmt=d=>d.replace(/-/g,"");
+    const s=`${fmt(ev.date)}T${(ev.start_time||"00:00").replace(":","")+"00"}`;
+    const e2=`${fmt(ev.date)}T${(ev.end_time||"00:00").replace(":","")+"00"}`;
+    window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(ev.title)}&dates=${s}/${e2}&details=${encodeURIComponent(ev.notes||"")}&location=${encodeURIComponent(ev.room||"")}`, "_blank");
+  };
+  return(
+    <Overlay onClose={onClose}>
+      <div style={{borderTop:`4px solid ${typeColor}`,paddingTop:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+          <div>
+            <div style={{fontWeight:800,fontSize:"1.15rem",color:NAVY}}>{ev.title}</div>
+            <div style={{fontSize:".8rem",color:"#6b7280",marginTop:3}}>{ev.club}</div>
+          </div>
+          <span className={`badge ${ev.status==="approved"?"b-green":ev.status==="pending"?"b-yellow":"b-red"}`}>{ev.status}</span>
+        </div>
+        <div style={{display:"grid",gap:9,fontSize:".875rem",marginBottom:18}}>
+          {[["📍","Location",ev.is_off_site?`Off-Site: ${ev.off_site_address}`:ev.room],["📅","Date",ev.date],["🕐","Time",`${ev.start_time} – ${ev.end_time}`],["🎭","Type",ev.type||"—"],["👥","Attendance",ev.attendance||"—"],["📝","Notes",ev.notes||"—"]].map(([icon,label,val])=>(
+            <div key={label} style={{display:"flex",gap:8}}>
+              <span>{icon}</span>
+              <span style={{color:"#6b7280",minWidth:80,flexShrink:0}}>{label}:</span>
+              <span style={{fontWeight:600,color:NAVY,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{val}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+          {ev.status==="approved"&&<button className="btn-ghost" style={{fontSize:".82rem"}} onClick={addGCal}>📅 Add to Google Calendar</button>}
+          {isAdmin&&ev.status==="pending"&&(
+            <><button className="btn-danger" onClick={()=>{onCancel(ev.id);onClose();}}>✗ Reject</button>
+            <button className="btn-primary" onClick={()=>{onApprove(ev.id);onClose();}}>✅ Approve</button></>
+          )}
+          {isAdmin&&ev.status==="approved"&&(
+            <button className="btn-danger" onClick={()=>{onCancel(ev.id);onClose();}}>✗ Cancel Event</button>
+          )}
+          <button className="btn-ghost" style={{marginLeft:"auto"}} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </Overlay>
+  );
+}
+
+// ── LOADING ──
+function Loading(){
+  return(
+    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0d1b35,#1B3461)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
+      <Logo size={58}/>
+      <div style={{color:"#fff",fontWeight:800,fontSize:"1.1rem"}}>EventClub</div>
+      <div style={{width:34,height:34,border:"3px solid rgba(255,255,255,.2)",borderTopColor:GOLD,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+    </div>
+  );
+}
+
+// ── APP ──
+function App(){
+  const[user,setUser]=useState(null);
+  const[loading,setLoading]=useState(true);
+  const[nav,setNav]=useState("calendar");
+  const[sel,setSel]=useState(null);
+  const{toasts,add:addToast}=useToasts();
+  const[events,setEvents]=useState([]);
+  const[rooms,setRooms]=useState([]);
+  const[eventTypes,setEventTypes]=useState([]);
+  const[clubUsers,setClubUsers]=useState([]);
+
+  const loadData=useCallback(async()=>{
+    const[ev,rm,ty,cu]=await Promise.all([
+      sb.from("events").select("*").order("date"),
+      sb.from("rooms").select("*").order("name"),
+      sb.from("event_types").select("*").order("name"),
+      sb.from("club_users").select("*").order("club"),
+    ]);
+    if(ev.data)setEvents(ev.data);
+    if(rm.data)setRooms(rm.data);
+    if(ty.data)setEventTypes(ty.data);
+    if(cu.data)setClubUsers(cu.data);
+  },[]);
+
+  useEffect(()=>{
+    (async()=>{
+      const{data:{session}}=await sb.auth.getSession();
+      if(session?.user?.email){
+        const{data:profile}=await sb.from("club_users").select("*").eq("email",session.user.email.toLowerCase()).single();
+        if(profile&&(profile.account_status==="active"||!profile.account_status)){
+          setUser({...profile,session});
+          await loadData();
+        }
+      }
+      setLoading(false);
+    })();
+    const{data:{subscription}}=sb.auth.onAuthStateChange(async(event)=>{
+      if(event==="SIGNED_OUT"){setUser(null);setNav("calendar");}
+    });
+    return()=>subscription.unsubscribe();
+  },[loadData]);
+
+  const onAuth=async u=>{setUser(u);await loadData();setNav("calendar");};
+  const onLogout=async()=>{await sb.auth.signOut();setUser(null);};
+  const onRefresh=useCallback(async()=>{await loadData();},[loadData]);
+  const approveEvent=async id=>{
+    const ev=events.find(e=>e.id===id);
+    await sb.from("events").update({status:"approved"}).eq("id",id);
+    addToast("✅ Approved","success");
+    if(ev){
+      const club=clubUsers.find(u=>u.club===ev.club);
+      sendEmail(EMAILJS_TPL_APPROVE,{to_email:club?.email||"",club_name:ev.club,event_title:ev.title,event_date:ev.date,event_time:`${ev.start_time}–${ev.end_time}`,event_room:ev.room});
+    }
+    onRefresh();
+  };
+  const cancelEvent=async id=>{await sb.from("events").update({status:"cancelled"}).eq("id",id);addToast("Event cancelled","error");onRefresh();};
+
+  if(loading)return<Loading/>;
+  if(!user)return<AuthScreen onAuth={onAuth}/>;
+  const isAdmin=user.role==="director"||user.is_admin===true;
+
+  return(
+    <div style={{minHeight:"100vh",background:"#EDF2F9"}}>
+      <Toasts toasts={toasts}/>
+      <Nav nav={nav} setNav={setNav} user={user} onLogout={onLogout}/>
+      <div className="content">
+        {nav==="calendar"  &&<CalendarView events={events} eventTypes={eventTypes} onSelect={setSel}/>}
+        {nav==="submit"    &&!isAdmin&&<SubmitEvent user={user} events={events} rooms={rooms} eventTypes={eventTypes} addToast={addToast} onRefresh={onRefresh}/>}
+        {nav==="myevents"  &&!isAdmin&&<MyEvents user={user} events={events} eventTypes={eventTypes} onSelect={setSel}/>}
+        {nav==="directory" &&<ClubDirectory clubUsers={clubUsers}/>}
+        {nav==="dashboard" &&isAdmin&&<Dashboard events={events} eventTypes={eventTypes} rooms={rooms} clubUsers={clubUsers} onSelect={setSel} addToast={addToast} onRefresh={onRefresh}/>}
+        {nav==="settings"  &&isAdmin&&<Settings rooms={rooms} eventTypes={eventTypes} clubUsers={clubUsers} addToast={addToast} onRefresh={onRefresh}/>}
+      </div>
+      <EventModal ev={sel} isAdmin={isAdmin} onClose={()=>setSel(null)} onApprove={approveEvent} onCancel={cancelEvent} eventTypes={eventTypes}/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
