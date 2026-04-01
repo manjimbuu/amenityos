@@ -816,6 +816,28 @@ function Dashboard({events, eventTypes, rooms, clubUsers, onSelect, addToast, on
   const [showPrint, setShowPrint] = useState(false);
   const [printMonth, setPrintMonth] = useState(today.getMonth());
   const [printYear, setPrintYear] = useState(today.getFullYear());
+  const [selected, setSelected] = useState(new Set());
+
+  const bulkApprove = async () => {
+    await Promise.all([...selected].map(id => sb.from("events").update({status:"approved"}).eq("id",id)));
+    addToast("Approved " + selected.size + " events","s"); setSelected(new Set()); onRefresh();
+  };
+  const bulkCancel = async () => {
+    if (!confirm("Cancel " + selected.size + " events?")) return;
+    await Promise.all([...selected].map(id => sb.from("events").update({status:"cancelled"}).eq("id",id)));
+    addToast("Cancelled " + selected.size + " events","e"); setSelected(new Set()); onRefresh();
+  };
+  const bulkSave = async () => {
+    const updates = {};
+    if (editEv.room) updates.room = editEv.room;
+    if (editEv.date) updates.date = editEv.date;
+    if (editEv.start_time) updates.start_time = editEv.start_time;
+    if (editEv.end_time) updates.end_time = editEv.end_time;
+    if (editEv.attendance) updates.attendance = parseInt(editEv.attendance)||0;
+    if (editEv.status) updates.status = editEv.status;
+    await Promise.all([...selected].map(id => sb.from("events").update(updates).eq("id",id)));
+    addToast("Updated " + selected.size + " events","s"); setEditEv(null); setSelected(new Set()); onRefresh();
+  };
 
   const approveEvent = async id => {
     const ev = events.find(e => e.id === id);
@@ -842,104 +864,165 @@ function Dashboard({events, eventTypes, rooms, clubUsers, onSelect, addToast, on
   return (
     <div className="fade">
       {showPrint && <PrintCalendar events={events} month={printMonth} year={printYear} onClose={()=>setShowPrint(false)}/>}
+
+      {/* Stats */}
       <div className="sgrid">
-        {[["Upcoming",upcoming.length,NAVY],["Pending",pending.length,"#92400e"],["Staff Requests",pendingStaff.length,"#5b21b6"],["Total",events.length,"#065f46"]].map(([label,count,color]) => (
-          <div key={label} className="card" style={{padding:14,textAlign:"center"}}>
-            <div style={{fontSize:"1.5rem",fontWeight:800,color}}>{count}</div>
-            <div style={{fontSize:".7rem",color:"#6b7280",marginTop:2}}>{label}</div>
+        {[["Upcoming",upcoming.length,NAVY],["Pending",pending.length,"#92400e"],["Requests",pendingStaff.length,"#5b21b6"],["Total",events.length,"#065f46"]].map(([label,count,color]) => (
+          <div key={label} className="card" style={{padding:16,textAlign:"center",borderTop:"3px solid "+color}}>
+            <div style={{fontSize:"1.8rem",fontWeight:800,color,lineHeight:1}}>{count}</div>
+            <div style={{fontSize:".72rem",color:"#6b7280",marginTop:4,fontWeight:600}}>{label}</div>
           </div>
         ))}
       </div>
+
+      {/* Pending Staff */}
       {pendingStaff.length > 0 && (
         <div style={{marginBottom:20}}>
-          <div className="st">Pending Account Requests</div>
+          <div className="st">Account Requests</div>
           {pendingStaff.map(u => (
-            <div key={u.id} className="card" style={{padding:14,marginBottom:8,display:"flex",alignItems:"center",gap:12}}>
+            <div key={u.id} className="card" style={{padding:14,marginBottom:8,display:"flex",alignItems:"center",gap:12,borderLeft:"3px solid #5b21b6"}}>
               <div style={{flex:1}}>
                 <div style={{fontWeight:700,color:NAVY}}>{u.club}</div>
-                <div style={{fontSize:".76rem",color:"#6b7280"}}>{u.email||u.username} - <span className="badge bp">{u.type}</span></div>
+                <div style={{fontSize:".76rem",color:"#6b7280"}}>{u.email||u.username} <span className="badge bp" style={{marginLeft:4}}>{u.type}</span></div>
               </div>
-              <button className="btn-d" style={{padding:"7px 14px",fontSize:".8rem"}} onClick={()=>rejectStaff(u)}>Reject</button>
-              <button className="btn-p" style={{padding:"7px 14px",fontSize:".8rem"}} onClick={()=>approveStaff(u)}>Approve</button>
+              <button className="btn-d" style={{padding:"6px 14px",fontSize:".8rem",borderRadius:20}} onClick={()=>rejectStaff(u)}>Decline</button>
+              <button className="btn-p" style={{padding:"6px 14px",fontSize:".8rem",borderRadius:20}} onClick={()=>approveStaff(u)}>Approve</button>
             </div>
           ))}
         </div>
       )}
+
+      {/* Pending Events */}
       {pending.length > 0 && (
         <div style={{marginBottom:20}}>
-          <div className="st">Pending Event Approval</div>
+          <div className="st">Awaiting Approval</div>
           {pending.map(e => (
-            <div key={e.id} className="card" style={{padding:16,marginBottom:10}}>
+            <div key={e.id} className="card" style={{padding:16,marginBottom:10,borderLeft:"3px solid #f59e0b"}}>
               <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:12}}>
-                <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type,eventTypes),flexShrink:0}}/>
+                <div style={{width:36,height:36,borderRadius:10,background:typeColor(e.type,eventTypes),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:".7rem",fontWeight:800,flexShrink:0}}>
+                  {(e.type||"?").slice(0,2).toUpperCase()}
+                </div>
                 <div style={{flex:1,cursor:"pointer"}} onClick={()=>onSelect(e)}>
-                  <div style={{fontWeight:700,color:NAVY}}>{e.title}</div>
-                  <div style={{fontSize:".77rem",color:"#6b7280",marginTop:2}}>{e.club} - {e.room} - {e.date} - {e.start_time}-{e.end_time}</div>
+                  <div style={{fontWeight:700,color:NAVY,fontSize:".95rem"}}>{e.title}</div>
+                  <div style={{fontSize:".76rem",color:"#6b7280",marginTop:2}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
                 </div>
               </div>
               <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-                <button className="btn-d" style={{padding:"7px 16px",fontSize:".8rem"}} onClick={()=>rejectEvent(e.id)}>Reject</button>
-                <button className="btn-p" style={{padding:"7px 16px",fontSize:".8rem"}} onClick={()=>approveEvent(e.id)}>Approve</button>
+                <button style={{padding:"7px 18px",fontSize:".82rem",border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>rejectEvent(e.id)}>Decline</button>
+                <button style={{padding:"7px 18px",fontSize:".82rem",background:NAVY,color:"#fff",border:"none",borderRadius:20,fontWeight:700,cursor:"pointer"}} onClick={()=>approveEvent(e.id)}>Approve</button>
               </div>
             </div>
           ))}
         </div>
       )}
+
+      {/* Upcoming Events — Multi-select */}
       <div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
-          <div className="st" style={{margin:0}}>Upcoming Events</div>
-          <div style={{display:"flex",gap:8}}>
-            <button className="btn-gold" style={{padding:"7px 14px",fontSize:".78rem"}} onClick={()=>setShowPrint(true)}>Print Calendar</button>
-            <button className="btn-g" style={{fontSize:".78rem",padding:"7px 14px"}} onClick={exportCSV}>Export CSV</button>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div className="st" style={{margin:0}}>Upcoming Events</div>
+            {selected.size > 0 && (
+              <span style={{background:NAVY,color:"#fff",borderRadius:20,padding:"3px 12px",fontSize:".75rem",fontWeight:700}}>{selected.size} selected</span>
+            )}
+          </div>
+          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+            {selected.size > 0 ? (
+              <>
+                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#374151"}} onClick={()=>setSelected(new Set())}>Clear</button>
+                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#065f46"}} onClick={bulkApprove}>Approve All</button>
+                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff7ed",border:"1.5px solid #fdba74",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#92400e"}} onClick={()=>setEditEv({...upcoming.find(e=>selected.has(e.id)),_bulk:true})}>Edit Selected</button>
+                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fef2f2",border:"1.5px solid #fca5a5",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#991b1b"}} onClick={bulkCancel}>Cancel All</button>
+              </>
+            ) : (
+              <>
+                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:NAVY}} onClick={()=>setShowPrint(true)}>Print</button>
+                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:NAVY}} onClick={exportCSV}>Export CSV</button>
+              </>
+            )}
           </div>
         </div>
-        {upcoming.length === 0 && <div className="card" style={{padding:24,textAlign:"center",color:"#9ca3af"}}>No upcoming approved events.</div>}
-        {upcoming.map(e => (
-          <div key={e.id} className="card" style={{padding:14,marginBottom:8,display:"flex",gap:10,alignItems:"center"}}>
-            <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type,eventTypes),flexShrink:0}}/>
-            <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>onSelect(e)}>
-              <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
-              <div style={{fontSize:".76rem",color:"#6b7280"}}>{e.club} - {e.room} - {e.date} - {e.start_time}-{e.end_time}</div>
-            </div>
-            <div style={{display:"flex",gap:6,flexShrink:0}}>
-              <button className="btn-g" style={{padding:"5px 10px",fontSize:".78rem"}} onClick={()=>setEditEv({...e})}>Edit</button>
-              <button className="btn-d" style={{padding:"5px 10px",fontSize:".78rem"}} onClick={()=>cancelEvent(e.id)}>Cancel</button>
-            </div>
+
+        {upcoming.length === 0 && (
+          <div className="card" style={{padding:32,textAlign:"center",color:"#9ca3af"}}>
+            <div style={{fontSize:"2rem",marginBottom:8}}>📅</div>
+            No upcoming approved events.
           </div>
-        ))}
+        )}
+
+        {/* Select All bar */}
+        {upcoming.length > 0 && (
+          <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 14px",background:"#f8faff",borderRadius:10,marginBottom:8,border:"1.5px solid #e0e7ff"}}>
+            <input type="checkbox"
+              style={{width:16,height:16,accentColor:NAVY,cursor:"pointer"}}
+              checked={selected.size === upcoming.length && upcoming.length > 0}
+              onChange={e => setSelected(e.target.checked ? new Set(upcoming.map(ev=>ev.id)) : new Set())}
+            />
+            <span style={{fontSize:".78rem",fontWeight:600,color:NAVY}}>Select all {upcoming.length} events</span>
+          </div>
+        )}
+
+        {upcoming.map(e => {
+          const isSel = selected.has(e.id);
+          return (
+            <div key={e.id} className="card" style={{padding:"12px 14px",marginBottom:6,display:"flex",gap:10,alignItems:"center",border:isSel?"1.5px solid "+NAVY:"1.5px solid #e5e7eb",background:isSel?"#f0f4ff":"#fff",transition:"all .15s"}}>
+              <input type="checkbox"
+                style={{width:16,height:16,accentColor:NAVY,cursor:"pointer",flexShrink:0}}
+                checked={isSel}
+                onChange={ev => { const s = new Set(selected); ev.target.checked ? s.add(e.id) : s.delete(e.id); setSelected(s); }}
+              />
+              <div style={{width:36,height:36,borderRadius:10,background:typeColor(e.type,eventTypes),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:".7rem",fontWeight:800,flexShrink:0}}>
+                {(e.type||"?").slice(0,2).toUpperCase()}
+              </div>
+              <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>onSelect(e)}>
+                <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+                <div style={{fontSize:".74rem",color:"#6b7280",marginTop:1}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
+              </div>
+              <div style={{display:"flex",gap:6,flexShrink:0}}>
+                <button style={{padding:"5px 12px",fontSize:".78rem",background:"#f3f4f6",color:"#374151",border:"none",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>setEditEv({...e})}>Edit</button>
+                <button style={{padding:"5px 12px",fontSize:".78rem",background:"#fee2e2",color:"#991b1b",border:"none",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>cancelEvent(e.id)}>Cancel</button>
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Edit Event Modal */}
       {editEv && (
         <Overlay onClose={()=>setEditEv(null)} wide>
-          <h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>Edit Event</h3>
+          <h3 style={{color:NAVY,fontWeight:800,marginBottom:4}}>{editEv._bulk ? "Bulk Edit " + selected.size + " Events" : "Edit Event"}</h3>
+          {editEv._bulk && <p style={{fontSize:".8rem",color:"#6b7280",marginBottom:18}}>Only filled fields will be updated. Leave blank to keep existing values.</p>}
           <div className="fg">
-            <div><label>Title</label><input value={editEv.title} onChange={e=>setEditEv(p=>({...p,title:e.target.value}))}/></div>
+            {!editEv._bulk && <div><label>Title</label><input value={editEv.title} onChange={e=>setEditEv(p=>({...p,title:e.target.value}))}/></div>}
             <div className="fr">
-              <div><label>Room</label>
-                <select value={editEv.room} onChange={e=>setEditEv(p=>({...p,room:e.target.value}))}>
+              <div><label>Room {editEv._bulk&&"(optional)"}</label>
+                <select value={editEv.room||""} onChange={e=>setEditEv(p=>({...p,room:e.target.value}))}>
+                  <option value="">{editEv._bulk?"— Keep existing —":"Select room"}</option>
                   {rooms.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
                 </select>
               </div>
-              <div><label>Date</label><input type="date" value={editEv.date} onChange={e=>setEditEv(p=>({...p,date:e.target.value}))}/></div>
+              <div><label>Date {editEv._bulk&&"(optional)"}</label><input type="date" value={editEv.date||""} onChange={e=>setEditEv(p=>({...p,date:e.target.value}))}/></div>
             </div>
             <div className="fr">
-              <div><label>Start Time</label><input type="time" value={editEv.start_time} onChange={e=>setEditEv(p=>({...p,start_time:e.target.value}))}/></div>
-              <div><label>End Time</label><input type="time" value={editEv.end_time} onChange={e=>setEditEv(p=>({...p,end_time:e.target.value}))}/></div>
+              <div><label>Start Time {editEv._bulk&&"(optional)"}</label><input type="time" value={editEv.start_time||""} onChange={e=>setEditEv(p=>({...p,start_time:e.target.value}))}/></div>
+              <div><label>End Time {editEv._bulk&&"(optional)"}</label><input type="time" value={editEv.end_time||""} onChange={e=>setEditEv(p=>({...p,end_time:e.target.value}))}/></div>
             </div>
             <div className="fr">
-              <div><label>Attendance</label><input type="number" value={editEv.attendance} onChange={e=>setEditEv(p=>({...p,attendance:e.target.value}))}/></div>
+              <div><label>Attendance {editEv._bulk&&"(optional)"}</label><input type="number" value={editEv.attendance||""} onChange={e=>setEditEv(p=>({...p,attendance:e.target.value}))}/></div>
               <div><label>Status</label>
-                <select value={editEv.status} onChange={e=>setEditEv(p=>({...p,status:e.target.value}))}>
+                <select value={editEv.status||"approved"} onChange={e=>setEditEv(p=>({...p,status:e.target.value}))}>
                   <option value="approved">Approved</option>
                   <option value="pending">Pending</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
             </div>
-            <div><label>Notes</label><textarea value={editEv.notes||""} onChange={e=>setEditEv(p=>({...p,notes:e.target.value}))} rows={3}/></div>
+            {!editEv._bulk && <div><label>Notes</label><textarea value={editEv.notes||""} onChange={e=>setEditEv(p=>({...p,notes:e.target.value}))} rows={3}/></div>}
           </div>
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
-            <button className="btn-g" onClick={()=>setEditEv(null)}>Cancel</button>
-            <button className="btn-p" onClick={saveEdit}>Save Changes</button>
+            <button style={{padding:"9px 20px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,cursor:"pointer"}} onClick={()=>setEditEv(null)}>Cancel</button>
+            <button style={{padding:"9px 20px",borderRadius:20,background:NAVY,color:"#fff",border:"none",fontWeight:700,cursor:"pointer"}} onClick={editEv._bulk ? bulkSave : saveEdit}>
+              {editEv._bulk ? "Update " + selected.size + " Events" : "Save Changes"}
+            </button>
           </div>
         </Overlay>
       )}
