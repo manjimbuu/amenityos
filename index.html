@@ -63,20 +63,17 @@ tr:last-child td{border-bottom:none;}tr:hover td{background:#fafafa;}
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
+<script>
 const {useState,useEffect,useCallback,useMemo} = React;
-
 const SURL = "https://kmzycozkrsnubyfgwbav.supabase.co";
 const SKEY = "sb_publishable_9bm2lvnHXnnMUKVEdIr8Tw_Ro4FMvzc";
 const sb = supabase.createClient(SURL, SKEY);
-
 const EJPK = "YOUR_PUBLIC_KEY";
 const EJSVC = "YOUR_SERVICE_ID";
 const EJTPL_SUB = "YOUR_SUBMIT_TEMPLATE";
 const EJTPL_APR = "YOUR_APPROVE_TEMPLATE";
 const DIR_EMAIL = "lifestyle@valenciaisleshoa.com";
 const EMAIL_ON = EJPK !== "YOUR_PUBLIC_KEY";
-
 const NAVY = "#1B3461", GOLD = "#C9A84C";
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const DAYS7 = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
@@ -84,1345 +81,1597 @@ const DAYS_FULL = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","
 const WEEK_LABELS = ["first","second","third","fourth","last"];
 const SETUPS = ["Theater","Classroom","Banquet","Cocktail","Board Meeting","Reception","U-Shape"];
 const SPACING = [{v:0,l:"No restriction"},{v:1,l:"No same-day"},{v:7,l:"7 days"},{v:10,l:"10 days"},{v:15,l:"15 days"},{v:30,l:"30 days"}];
-
 async function sendEmail(tpl, p) {
-  if (!EMAIL_ON) return;
-  try { await emailjs.send(EJSVC, tpl, p, EJPK); } catch(e) { console.warn("Email err", e); }
+if (!EMAIL_ON) return;
+try { await emailjs.send(EJSVC, tpl, p, EJPK); } catch(e) { console.warn("Email err", e); }
 }
-
+</script>
+<script type="text/babel">
 function useToasts() {
-  const [ts, setTs] = useState([]);
-  const add = useCallback((msg, type="i") => {
-    const id = Date.now();
-    setTs(p => [...p, {id, msg, type}]);
-    setTimeout(() => setTs(p => p.filter(t => t.id !== id)), 4500);
-  }, []);
-  return {ts, add};
+const [ts, setTs] = useState([]);
+const add = useCallback((msg, type="i") => {
+const id = Date.now();
+setTs(p => [...p, {id, msg, type}]);
+setTimeout(() => setTs(p => p.filter(t => t.id !== id)), 4500);
+}, []);
+return {ts, add};
 }
-
 function Toasts({ts}) {
-  return (
-    <div className="toast-wrap">
-      {ts.map(t => <div key={t.id} className={"toast " + t.type}>{t.msg}</div>)}
-    </div>
-  );
+return (
+<div className="toast-wrap">
+{ts.map(t => <div key={t.id} className={"toast " + t.type}>{t.msg}</div>)}
+</div>
+);
 }
-
 function Overlay({onClose, children, wide}) {
-  useEffect(() => {
-    const fn = e => { if (e.key === "Escape") onClose(); };
-    document.addEventListener("keydown", fn);
-    return () => document.removeEventListener("keydown", fn);
-  }, [onClose]);
-  return (
-    <div className="ovbg" onClick={onClose}>
-      <div className="ovbox fade" style={wide ? {maxWidth:680} : {}} onClick={e => e.stopPropagation()}>
-        {children}
-      </div>
-    </div>
-  );
+useEffect(() => {
+const fn = e => { if (e.key === "Escape") onClose(); };
+document.addEventListener("keydown", fn);
+return () => document.removeEventListener("keydown", fn);
+}, [onClose]);
+return (
+<div className="ovbg" onClick={onClose}>
+<div className="ovbox fade" style={wide ? {maxWidth:680} : {}} onClick={e => e.stopPropagation()}>
+{children}
+</div>
+</div>
+);
 }
-
 function Logo({size=34}) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
-      <rect width="48" height="48" rx="11" fill={GOLD}/>
-      <rect x="11" y="7" width="7" height="5" rx="2.5" fill="white"/>
-      <rect x="30" y="7" width="7" height="5" rx="2.5" fill="white"/>
-      <rect x="7" y="15" width="34" height="27" rx="7" fill={NAVY}/>
-      <rect x="7" y="15" width="34" height="9" fill={NAVY}/>
-      <text x="24" y="37" textAnchor="middle" fill="white" fontSize="11.5" fontWeight="800" fontFamily="DM Sans,sans-serif">EC</text>
-      <circle cx="16" cy="20" r="2.2" fill={GOLD}/>
-      <circle cx="24" cy="20" r="2.2" fill={GOLD}/>
-      <circle cx="32" cy="20" r="2.2" fill={GOLD}/>
-    </svg>
-  );
+return (
+<svg width={size} height={size} viewBox="0 0 48 48" fill="none">
+<rect width="48" height="48" rx="11" fill={GOLD}/>
+<rect x="11" y="7" width="7" height="5" rx="2.5" fill="white"/>
+<rect x="30" y="7" width="7" height="5" rx="2.5" fill="white"/>
+<rect x="7" y="15" width="34" height="27" rx="7" fill={NAVY}/>
+<rect x="7" y="15" width="34" height="9" fill={NAVY}/>
+<text x="24" y="37" textAnchor="middle" fill="white" fontSize="11.5" fontWeight="800" fontFamily="DM Sans,sans-serif">AO</text>
+<circle cx="16" cy="20" r="2.2" fill={GOLD}/>
+<circle cx="24" cy="20" r="2.2" fill={GOLD}/>
+<circle cx="32" cy="20" r="2.2" fill={GOLD}/>
+</svg>
+);
 }
-
 function Nav({nav, setNav, user, onLogout}) {
-  const isAdmin = user?.role === "director" || user?.is_admin === true;
-  const tabs = isAdmin
-    ? [["calendar","📅","Calendar"],["submit","✏️","Submit"],["dashboard","📊","Dashboard"],["directory","👥","Directory"],["settings","⚙️","Settings"]]
-    : [["calendar","📅","Calendar"],["submit","✏️","Submit"],["myevents","📋","My Events"],["directory","👥","Directory"]];
-  return (
-    <div>
-      <div className="tnav">
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <Logo size={34}/>
-          <div>
-            <div style={{fontWeight:800,fontSize:"1rem"}}>AmenityOS</div>
-            <div style={{fontSize:".68rem",opacity:.65}}>Valencia Isles</div>
-          </div>
-        </div>
-        <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div className="dnav">
-            {tabs.map(([k,icon,label]) => (
-              <button key={k} className={nav===k?"on":""} onClick={() => setNav(k)}>{icon} {label}</button>
-            ))}
-          </div>
-          <div style={{fontSize:".75rem",opacity:.8,maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-            {isAdmin ? "Director" : user?.club}
-          </div>
-          <button onClick={onLogout} style={{background:"rgba(255,255,255,.15)",color:"#fff",borderRadius:8,padding:"6px 12px",fontSize:".75rem",fontWeight:600,border:"none"}}>
-            Sign Out
-          </button>
-        </div>
-      </div>
-      <div className="bnav">
-        {tabs.map(([k,icon,label]) => (
-          <button key={k} className={nav===k?"on":""} onClick={() => setNav(k)}>
-            <span className="ni">{icon}</span>{label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+const isAdmin = user?.role === "director" || user?.is_admin === true;
+const tabs = isAdmin
+? [["calendar","📅","Calendar"],["submit","✏️","Submit"],["dashboard","📊","Dashboard"],["directory","👥","Directory"],["settings","⚙️","Settings"]]
+: [["calendar","📅","Calendar"],["submit","✏️","Submit"],["myevents","📋","My Events"],["directory","👥","Directory"]];
+return (
+<div>
+<div className="tnav">
+<div style={{display:"flex",alignItems:"center",gap:10}}>
+<Logo size={34}/>
+<div>
+<div style={{fontWeight:800,fontSize:"1rem"}}>AmenityOS</div>
+<div style={{fontSize:".68rem",opacity:.65}}>Valencia Isles</div>
+</div>
+</div>
+<div style={{display:"flex",alignItems:"center",gap:8}}>
+<div className="dnav">
+{tabs.map(([k,icon,label]) => (
+<button key={k} className={nav===k?"on":""} onClick={() => setNav(k)}>{icon} {label}</button>
+))}
+</div>
+<div style={{fontSize:".75rem",opacity:.8,maxWidth:130,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+{isAdmin ? "Director" : user?.club}
+</div>
+<button onClick={onLogout} style={{background:"rgba(255,255,255,.15)",color:"#fff",borderRadius:8,padding:"6px 12px",fontSize:".75rem",fontWeight:600,border:"none"}}>
+Sign Out
+</button>
+</div>
+</div>
+<div className="bnav">
+{tabs.map(([k,icon,label]) => (
+<button key={k} className={nav===k?"on":""} onClick={() => setNav(k)}>
+<span className="ni">{icon}</span>{label}
+</button>
+))}
+</div>
+</div>
+);
 }
-
 function AuthScreen({onAuth}) {
-  const [mode, setMode] = useState("login");
-  const [form, setForm] = useState({email:"",password:"",confirm:"",club:"",role:"club",showAdmin:false});
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState({text:"",ok:false});
-  const set = (k,v) => setForm(p => ({...p,[k]:v}));
-  const showErr = t => setMsg({text:t,ok:false});
-  const showOk  = t => setMsg({text:t,ok:true});
-
-  const doLogin = async () => {
-    if (!form.email || !form.password) return showErr("Please enter your email and password.");
-    setLoading(true); setMsg({text:"",ok:false});
-    try {
-      const {data, error} = await sb.auth.signInWithPassword({email:form.email.trim(), password:form.password});
-      if (error) { setLoading(false); return showErr(error.message); }
-      const {data:profile} = await sb.from("club_users").select("*").eq("email", form.email.trim().toLowerCase()).single();
-      if (!profile) { await sb.auth.signOut(); setLoading(false); return showErr("No account found. Please sign up or contact your director."); }
-      if (profile.account_status === "pending") { await sb.auth.signOut(); setLoading(false); return showErr("Your account is pending director approval."); }
-      if (profile.account_status === "inactive") { await sb.auth.signOut(); setLoading(false); return showErr("Account deactivated. Contact your director."); }
-      setLoading(false); onAuth({...profile, session:data.session});
-    } catch(e) { setLoading(false); showErr("Connection error. Please try again."); }
-  };
-
-  const doSignup = async () => {
-    if (!form.email || !form.password || !form.club) return showErr("Please fill in all required fields.");
-    if (form.password !== form.confirm) return showErr("Passwords do not match.");
-    if (form.password.length < 6) return showErr("Password must be at least 6 characters.");
-    setLoading(true); setMsg({text:"",ok:false});
-    try {
-      const {data:existing} = await sb.from("club_users").select("*").ilike("club", form.club.trim()).is("email",null).single();
-      const {data:authData, error:authErr} = await sb.auth.signUp({email:form.email.trim(), password:form.password});
-      if (authErr) { setLoading(false); return showErr(authErr.message); }
-      const isStaff = ["management","staff"].includes(form.role);
-      const {data:admins} = await sb.from("club_users").select("id").eq("is_admin",true).limit(1);
-      const isFirstAdmin = isStaff && (!admins || admins.length === 0);
-
-      if (existing) {
-        await sb.from("club_users").update({
-          email: form.email.trim().toLowerCase(),
-          account_status: isFirstAdmin ? "active" : isStaff ? "pending" : "active",
-          is_admin: isFirstAdmin,
-          role: isFirstAdmin ? "director" : isStaff ? "staff" : "resident",
-        }).eq("id", existing.id);
-        setLoading(false); setMode("login");
-        showOk(isFirstAdmin ? "Director account ready! Please sign in." : isStaff ? "Pending director approval." : "Account claimed! Please sign in.");
-      } else {
-        const {error:insErr} = await sb.from("club_users").insert({
-          id: crypto.randomUUID(),
-          email: form.email.trim().toLowerCase(),
-          username: form.email.trim().toLowerCase(),
-          password: "",
-          club: form.club.trim(),
-          name: form.club.trim(),
-          type: form.role,
-          role: isFirstAdmin ? "director" : isStaff ? "staff" : "resident",
-          account_status: isFirstAdmin ? "active" : isStaff ? "pending" : "active",
-          is_admin: isFirstAdmin,
-        });
-        if (insErr) { setLoading(false); return showErr("Error: " + insErr.message); }
-        setLoading(false); setMode("login");
-        showOk(isFirstAdmin ? "Director account created! Please sign in." : isStaff ? "Account created! Pending director approval." : "Account created! Please sign in.");
-      }
-    } catch(e) { setLoading(false); showErr("Connection error. Please try again."); }
-  };
-
-  return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0d1b35 0%,#1B3461 55%,#2a4a82 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-      <div className="card fade" style={{width:"100%",maxWidth:420,padding:"36px 32px"}}>
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",marginBottom:28}}>
-          <Logo size={54}/>
-          <div style={{fontWeight:800,fontSize:"1.5rem",color:NAVY,marginTop:10}}>AmenityOS</div>
-          <div style={{fontSize:".8rem",color:"#6b7280",marginTop:2}}>Valencia Isles</div>
-        </div>
-        {mode === "login" && (
-          <div className="fg">
-            <div><label>Email Address</label><input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@email.com" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
-            <div><label>Password</label><input type="password" value={form.password} onChange={e=>set("password",e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
-            {msg.text && <div style={{fontSize:".8rem",padding:"10px 14px",borderRadius:8,background:msg.ok?"#d1fae5":"#fee2e2",color:msg.ok?"#065f46":"#991b1b"}}>{msg.text}</div>}
-            <button className="btn-p" style={{width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={doLogin} disabled={loading}>
-              {loading ? <span className="spin"/> : "Sign In"}
-            </button>
-            <div style={{textAlign:"center",fontSize:".82rem",color:"#6b7280",borderTop:"1px solid #e5e7eb",paddingTop:14}}>
-              No account?{" "}
-              <button onClick={()=>{setMode("signup");setMsg({text:"",ok:false});}} style={{background:"none",color:NAVY,fontWeight:700,border:"none",cursor:"pointer",textDecoration:"underline"}}>Sign Up</button>
-            </div>
-          </div>
-        )}
-        {mode === "signup" && (
-          <div className="fg">
-            <div style={{background:"#f0f4ff",border:"1px solid #c7d2fe",borderRadius:8,padding:"10px 14px",fontSize:".79rem",color:"#3730a3"}}>
-              If your club is already in the system, enter your exact club name and we will link your account automatically.
-            </div>
-            <div><label>Club or Committee Name *</label><input value={form.club} onChange={e=>set("club",e.target.value)} placeholder="e.g. Card Club, Welcoming Committee"/></div>
-            <div>
-              <label>Account Type</label>
-              <select value={form.role} onChange={e=>set("role",e.target.value)}>
-                <option value="club">Club Representative</option>
-                <option value="committee">Committee Member</option>
-                {form.showAdmin && <option value="management">Management Team (Director)</option>}
-              </select>
-            </div>
-            <div><label>Email Address *</label><input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@email.com"/></div>
-            <div className="fr">
-              <div><label>Password *</label><input type="password" value={form.password} onChange={e=>set("password",e.target.value)} placeholder="Min. 6 chars"/></div>
-              <div><label>Confirm *</label><input type="password" value={form.confirm} onChange={e=>set("confirm",e.target.value)} placeholder="Repeat"/></div>
-            </div>
-            {msg.text && <div style={{fontSize:".8rem",padding:"10px 14px",borderRadius:8,background:msg.ok?"#d1fae5":"#fee2e2",color:msg.ok?"#065f46":"#991b1b"}}>{msg.text}</div>}
-            <button className="btn-p" style={{width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={doSignup} disabled={loading}>
-              {loading ? <span className="spin"/> : "Create Account"}
-            </button>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:".82rem",color:"#6b7280"}}>
-              <button onClick={()=>{setMode("login");setMsg({text:"",ok:false});}} style={{background:"none",color:NAVY,fontWeight:700,border:"none",cursor:"pointer",textDecoration:"underline",fontSize:".82rem"}}>Back to Sign In</button>
-              <button onClick={async()=>{
-                const {data} = await sb.from("club_users").select("id").eq("is_admin",true).limit(1);
-                if (!data || data.length === 0) { set("showAdmin",true); showOk("Director setup enabled."); }
-                else showErr("A director already exists. Contact your director for access.");
-              }} style={{background:"none",border:"none",color:"#9ca3af",fontSize:".72rem",cursor:"pointer",textDecoration:"underline"}}>
-                Setting up as director?
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+const [mode, setMode] = useState("login");
+const [form, setForm] = useState({email:"",password:"",confirm:"",club:"",role:"club",showAdmin:false});
+const [loading, setLoading] = useState(false);
+const [msg, setMsg] = useState({text:"",ok:false});
+const set = (k,v) => setForm(p => ({...p,[k]:v}));
+const showErr = t => setMsg({text:t,ok:false});
+const showOk  = t => setMsg({text:t,ok:true});
+const doLogin = async () => {
+if (!form.email || !form.password) return showErr("Please enter your email and password.");
+setLoading(true); setMsg({text:"",ok:false});
+try {
+const {data, error} = await sb.auth.signInWithPassword({email:form.email.trim(), password:form.password});
+if (error) { setLoading(false); return showErr(error.message); }
+const {data:profile} = await sb.from("club_users").select("*").eq("email", form.email.trim().toLowerCase()).single();
+if (!profile) { await sb.auth.signOut(); setLoading(false); return showErr("No account found. Please sign up or contact your director."); }
+if (profile.account_status === "pending") { await sb.auth.signOut(); setLoading(false); return showErr("Your account is pending director approval."); }
+if (profile.account_status === "inactive") { await sb.auth.signOut(); setLoading(false); return showErr("Account deactivated. Contact your director."); }
+setLoading(false); onAuth({...profile, session:data.session});
+} catch(e) { setLoading(false); showErr("Connection error. Please try again."); }
+};
+const doSignup = async () => {
+if (!form.email || !form.password || !form.club) return showErr("Please fill in all required fields.");
+if (form.password !== form.confirm) return showErr("Passwords do not match.");
+if (form.password.length < 6) return showErr("Password must be at least 6 characters.");
+setLoading(true); setMsg({text:"",ok:false});
+try {
+const {data:existing} = await sb.from("club_users").select("*").ilike("club", form.club.trim()).is("email",null).single();
+const {data:authData, error:authErr} = await sb.auth.signUp({email:form.email.trim(), password:form.password});
+if (authErr) { setLoading(false); return showErr(authErr.message); }
+const isStaff = ["management","staff"].includes(form.role);
+const {data:admins} = await sb.from("club_users").select("id").eq("is_admin",true).limit(1);
+const isFirstAdmin = isStaff && (!admins || admins.length === 0);
+if (existing) {
+await sb.from("club_users").update({
+email: form.email.trim().toLowerCase(),
+account_status: isFirstAdmin ? "active" : isStaff ? "pending" : "active",
+is_admin: isFirstAdmin,
+role: isFirstAdmin ? "director" : isStaff ? "staff" : "resident",
+}).eq("id", existing.id);
+setLoading(false); setMode("login");
+showOk(isFirstAdmin ? "Director account ready! Please sign in." : isStaff ? "Pending director approval." : "Account claimed! Please sign in.");
+} else {
+const {error:insErr} = await sb.from("club_users").insert({
+id: crypto.randomUUID(),
+email: form.email.trim().toLowerCase(),
+username: form.email.trim().toLowerCase(),
+password: "",
+club: form.club.trim(),
+name: form.club.trim(),
+type: form.role,
+role: isFirstAdmin ? "director" : isStaff ? "staff" : "resident",
+account_status: isFirstAdmin ? "active" : isStaff ? "pending" : "active",
+is_admin: isFirstAdmin,
+});
+if (insErr) { setLoading(false); return showErr("Error: " + insErr.message); }
+setLoading(false); setMode("login");
+showOk(isFirstAdmin ? "Director account created! Please sign in." : isStaff ? "Account created! Pending director approval." : "Account created! Please sign in.");
 }
-
+} catch(e) { setLoading(false); showErr("Connection error. Please try again."); }
+};
+return (
+<div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0d1b35 0%,#1B3461 55%,#2a4a82 100%)",display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+<div className="card fade" style={{width:"100%",maxWidth:420,padding:"36px 32px"}}>
+<div style={{display:"flex",flexDirection:"column",alignItems:"center",marginBottom:28}}>
+<Logo size={54}/>
+<div style={{fontWeight:800,fontSize:"1.5rem",color:NAVY,marginTop:10}}>AmenityOS</div>
+<div style={{fontSize:".8rem",color:"#6b7280",marginTop:2}}>Valencia Isles</div>
+</div>
+{mode === "login" && (
+<div className="fg">
+<div><label>Email Address</label><input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@email.com" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+<div><label>Password</label><input type="password" value={form.password} onChange={e=>set("password",e.target.value)} placeholder="••••••••" onKeyDown={e=>e.key==="Enter"&&doLogin()}/></div>
+{msg.text && <div style={{fontSize:".8rem",padding:"10px 14px",borderRadius:8,background:msg.ok?"#d1fae5":"#fee2e2",color:msg.ok?"#065f46":"#991b1b"}}>{msg.text}</div>}
+<button className="btn-p" style={{width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={doLogin} disabled={loading}>
+{loading ? <span className="spin"/> : "Sign In"}
+</button>
+<div style={{textAlign:"center",fontSize:".82rem",color:"#6b7280",borderTop:"1px solid #e5e7eb",paddingTop:14}}>
+No account?{" "}
+<button onClick={()=>{setMode("signup");setMsg({text:"",ok:false});}} style={{background:"none",color:NAVY,fontWeight:700,border:"none",cursor:"pointer",textDecoration:"underline"}}>Sign Up</button>
+</div>
+</div>
+)}
+{mode === "signup" && (
+<div className="fg">
+<div style={{background:"#f0f4ff",border:"1px solid #c7d2fe",borderRadius:8,padding:"10px 14px",fontSize:".79rem",color:"#3730a3"}}>
+If your club is already in the system, enter your exact club name and we will link your account automatically.
+</div>
+<div><label>Club or Committee Name *</label><input value={form.club} onChange={e=>set("club",e.target.value)} placeholder="e.g. Card Club, Welcoming Committee"/></div>
+<div>
+<label>Account Type</label>
+<select value={form.role} onChange={e=>set("role",e.target.value)}>
+<option value="club">Club Representative</option>
+<option value="committee">Committee Member</option>
+{form.showAdmin && <option value="management">Management Team (Director)</option>}
+</select>
+</div>
+<div><label>Email Address *</label><input type="email" value={form.email} onChange={e=>set("email",e.target.value)} placeholder="you@email.com"/></div>
+<div className="fr">
+<div><label>Password *</label><input type="password" value={form.password} onChange={e=>set("password",e.target.value)} placeholder="Min. 6 chars"/></div>
+<div><label>Confirm *</label><input type="password" value={form.confirm} onChange={e=>set("confirm",e.target.value)} placeholder="Repeat"/></div>
+</div>
+{msg.text && <div style={{fontSize:".8rem",padding:"10px 14px",borderRadius:8,background:msg.ok?"#d1fae5":"#fee2e2",color:msg.ok?"#065f46":"#991b1b"}}>{msg.text}</div>}
+<button className="btn-p" style={{width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={doSignup} disabled={loading}>
+{loading ? <span className="spin"/> : "Create Account"}
+</button>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:".82rem",color:"#6b7280"}}>
+<button onClick={()=>{setMode("login");setMsg({text:"",ok:false});}} style={{background:"none",color:NAVY,fontWeight:700,border:"none",cursor:"pointer",textDecoration:"underline",fontSize:".82rem"}}>Back to Sign In</button>
+<button onClick={async()=>{
+const {data} = await sb.from("club_users").select("id").eq("is_admin",true).limit(1);
+if (!data || data.length === 0) { set("showAdmin",true); showOk("Director setup enabled."); }
+else showErr("A director already exists. Contact your director for access.");
+}} style={{background:"none",border:"none",color:"#9ca3af",fontSize:".72rem",cursor:"pointer",textDecoration:"underline"}}>
+Setting up as director?
+</button>
+</div>
+</div>
+)}
+</div>
+</div>
+);
+}
 function getRecurrenceOpts(dateStr) {
-  if (!dateStr) return [{v:"none",l:"Does not repeat"}];
-  const d = new Date(dateStr + "T00:00:00");
-  const dayName = DAYS_FULL[d.getDay()];
-  const dayNum = d.getDate();
-  const monthName = MONTHS[d.getMonth()];
-  const wk = Math.ceil(dayNum / 7);
-  const isLast = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate() - dayNum < 7;
-  const wkLabel = isLast ? "last" : WEEK_LABELS[wk-1];
-  return [
-    {v:"none",         l:"Does not repeat"},
-    {v:"daily",        l:"Daily"},
-    {v:"weekly",       l:"Weekly on " + dayName},
-    {v:"biweekly",     l:"Every 2 weeks on " + dayName},
-    {v:"monthly_day",  l:"Monthly on day " + dayNum},
-    {v:"monthly_week", l:"Monthly on the " + wkLabel + " " + dayName},
-    {v:"annually",     l:"Annually on " + monthName + " " + dayNum},
-    {v:"weekdays",     l:"Every weekday (Mon-Fri)"},
-  ];
+if (!dateStr) return [{v:"none",l:"Does not repeat"}];
+const d = new Date(dateStr + "T00:00:00");
+const dayName = DAYS_FULL[d.getDay()];
+const dayNum = d.getDate();
+const monthName = MONTHS[d.getMonth()];
+const wk = Math.ceil(dayNum / 7);
+const isLast = new Date(d.getFullYear(), d.getMonth()+1, 0).getDate() - dayNum < 7;
+const wkLabel = isLast ? "last" : WEEK_LABELS[wk-1];
+return [
+{v:"none",         l:"Does not repeat"},
+{v:"daily",        l:"Daily"},
+{v:"weekly",       l:"Weekly on " + dayName},
+{v:"biweekly",     l:"Every 2 weeks on " + dayName},
+{v:"monthly_day",  l:"Monthly on day " + dayNum},
+{v:"monthly_week", l:"Monthly on the " + wkLabel + " " + dayName},
+{v:"annually",     l:"Annually on " + monthName + " " + dayNum},
+{v:"weekdays",     l:"Every weekday (Mon-Fri)"},
+];
 }
-
 function buildDates(start, rec, end) {
-  if (!rec || rec === "none") return [start];
-  const dates = [];
-  const cur = new Date(start + "T00:00:00");
-  const endD = new Date((end || start) + "T00:00:00");
-  const startDay = cur.getDay();
-  const startDayNum = cur.getDate();
-  const wkOcc = Math.ceil(startDayNum / 7);
-  const isLast = new Date(cur.getFullYear(), cur.getMonth()+1, 0).getDate() - startDayNum < 7;
-  const max = 104;
-  while (cur <= endD && dates.length < max) {
-    dates.push(cur.toISOString().split("T")[0]);
-    if (rec === "daily") cur.setDate(cur.getDate()+1);
-    else if (rec === "weekly") cur.setDate(cur.getDate()+7);
-    else if (rec === "biweekly") cur.setDate(cur.getDate()+14);
-    else if (rec === "weekdays") { cur.setDate(cur.getDate()+1); while(cur.getDay()===0||cur.getDay()===6) cur.setDate(cur.getDate()+1); }
-    else if (rec === "monthly_day") { cur.setMonth(cur.getMonth()+1); cur.setDate(startDayNum); }
-    else if (rec === "monthly_week") {
-      cur.setMonth(cur.getMonth()+1);
-      if (isLast) { const ld = new Date(cur.getFullYear(),cur.getMonth()+1,0); while(ld.getDay()!==startDay)ld.setDate(ld.getDate()-1); cur.setDate(ld.getDate()); }
-      else { cur.setDate(1); let cnt=0; while(cnt<wkOcc){if(cur.getDay()===startDay)cnt++; if(cnt<wkOcc)cur.setDate(cur.getDate()+1);} }
-    }
-    else if (rec === "annually") cur.setFullYear(cur.getFullYear()+1);
-    else break;
-  }
-  return dates;
+if (!rec || rec === "none") return [start];
+const dates = [];
+const cur = new Date(start + "T00:00:00");
+const endD = new Date((end || start) + "T00:00:00");
+const startDay = cur.getDay();
+const startDayNum = cur.getDate();
+const wkOcc = Math.ceil(startDayNum / 7);
+const isLast = new Date(cur.getFullYear(), cur.getMonth()+1, 0).getDate() - startDayNum < 7;
+const max = 104;
+while (cur <= endD && dates.length < max) {
+dates.push(cur.toISOString().split("T")[0]);
+if (rec === "daily") cur.setDate(cur.getDate()+1);
+else if (rec === "weekly") cur.setDate(cur.getDate()+7);
+else if (rec === "biweekly") cur.setDate(cur.getDate()+14);
+else if (rec === "weekdays") { cur.setDate(cur.getDate()+1); while(cur.getDay()===0||cur.getDay()===6) cur.setDate(cur.getDate()+1); }
+else if (rec === "monthly_day") { cur.setMonth(cur.getMonth()+1); cur.setDate(startDayNum); }
+else if (rec === "monthly_week") {
+cur.setMonth(cur.getMonth()+1);
+if (isLast) { const ld = new Date(cur.getFullYear(),cur.getMonth()+1,0); while(ld.getDay()!==startDay)ld.setDate(ld.getDate()-1); cur.setDate(ld.getDate()); }
+else { cur.setDate(1); let cnt=0; while(cnt<wkOcc){if(cur.getDay()===startDay)cnt++; if(cnt<wkOcc)cur.setDate(cur.getDate()+1);} }
 }
-
+else if (rec === "annually") cur.setFullYear(cur.getFullYear()+1);
+else break;
+}
+return dates;
+}
 function detectConflicts(ev, allEvents, rooms, eventTypes) {
-  const conflicts = [];
-  const room = rooms.find(r => r.name === ev.room);
-  const etype = eventTypes.find(t => t.name === ev.type);
-
-  // allow_time_overlap=true means this event type only blocks SAME ROOM conflicts (e.g. committees)
-  // allow_time_overlap=false means this event type blocks ALL same-time conflicts with other events of same type (e.g. clubs)
-  const allowTimeOverlap = etype?.allow_time_overlap === true;
-
-  // 1. Room conflict — always blocked for everyone
-  if (room && !ev.is_off_site) {
-    const sd = parseInt(room.spacing_days) || 0;
-    allEvents.filter(e => e.status !== "cancelled" && e.room === ev.room && e.id !== ev.id).forEach(e => {
-      const diff = Math.abs((new Date(ev.date) - new Date(e.date)) / 86400000);
-      if (e.date === ev.date) {
-        if (ev.start_time < e.end_time && ev.end_time > e.start_time)
-          conflicts.push({msg:"Room conflict: " + room.name + " is already booked for \"" + e.title + "\" (" + e.start_time + "-" + e.end_time + ")"});
-        else if (sd === 1)
-          conflicts.push({msg:room.name + " does not allow same-day bookings"});
-      } else if (sd > 1 && diff < sd) {
-        conflicts.push({msg:room.name + " needs " + sd + " days between events - \"" + e.title + "\" is on " + e.date + " (" + Math.round(diff) + "d gap)"});
-      }
-    });
-  }
-
-  // 2. Same-time conflict across all rooms — only for types with allow_time_overlap=false (clubs)
-  if (!allowTimeOverlap && !ev.is_off_site) {
-    allEvents.filter(e => {
-      if (e.status === "cancelled" || e.id === ev.id) return false;
-      if (e.room === ev.room) return false; // already caught above
-      const otherType = eventTypes.find(t => t.name === e.type);
-      // Only block if the OTHER event also does not allow time overlap (club vs club)
-      return otherType?.allow_time_overlap === false;
-    }).forEach(e => {
-      if (e.date === ev.date && ev.start_time < e.end_time && ev.end_time > e.start_time)
-        conflicts.push({msg:"Time conflict: \"" + e.title + "\" (" + e.club + ") is already scheduled at this time in " + e.room + ". Club events cannot overlap."});
-    });
-  }
-
-  // 3. Same event type spacing
-  if (etype && (etype.spacing_days||0) > 0) {
-    const sd = parseInt(etype.spacing_days);
-    allEvents.filter(e => e.status !== "cancelled" && e.type === ev.type && e.id !== ev.id).forEach(e => {
-      const diff = Math.abs((new Date(ev.date) - new Date(e.date)) / 86400000);
-      if (diff < sd) conflicts.push({msg:"\"" + etype.name + "\" events need " + sd + " days apart - \"" + e.title + "\" is on " + e.date});
-    });
-  }
-
-  // 4. Capacity warning
-  if (room && room.capacity > 0 && parseInt(ev.attendance) > room.capacity)
-    conflicts.push({warning:true, msg:"Attendance (" + ev.attendance + ") exceeds " + room.name + " capacity (" + room.capacity + ")"});
-
-  return conflicts;
+const conflicts = [];
+const room = rooms.find(r => r.name === ev.room);
+const etype = eventTypes.find(t => t.name === ev.type);
+const allowTimeOverlap = etype?.allow_time_overlap === true;
+if (room && !ev.is_off_site) {
+const sd = parseInt(room.spacing_days) || 0;
+allEvents.filter(e => e.status !== "cancelled" && e.room === ev.room && e.id !== ev.id).forEach(e => {
+const diff = Math.abs((new Date(ev.date) - new Date(e.date)) / 86400000);
+if (e.date === ev.date) {
+if (ev.start_time < e.end_time && ev.end_time > e.start_time)
+conflicts.push({msg:"Room conflict: " + room.name + " is already booked for \"" + e.title + "\" (" + e.start_time + "-" + e.end_time + ")"});
+else if (sd === 1)
+conflicts.push({msg:room.name + " does not allow same-day bookings"});
+} else if (sd > 1 && diff < sd) {
+conflicts.push({msg:room.name + " needs " + sd + " days between events - \"" + e.title + "\" is on " + e.date + " (" + Math.round(diff) + "d gap)"});
 }
-
+});
+}
+if (!allowTimeOverlap && !ev.is_off_site) {
+allEvents.filter(e => {
+if (e.status === "cancelled" || e.id === ev.id) return false;
+if (e.room === ev.room) return false; // already caught above
+const otherType = eventTypes.find(t => t.name === e.type);
+return otherType?.allow_time_overlap === false;
+}).forEach(e => {
+if (e.date === ev.date && ev.start_time < e.end_time && ev.end_time > e.start_time)
+conflicts.push({msg:"Time conflict: \"" + e.title + "\" (" + e.club + ") is already scheduled at this time in " + e.room + ". Club events cannot overlap."});
+});
+}
+if (etype && (etype.spacing_days||0) > 0) {
+const sd = parseInt(etype.spacing_days);
+allEvents.filter(e => e.status !== "cancelled" && e.type === ev.type && e.id !== ev.id).forEach(e => {
+const diff = Math.abs((new Date(ev.date) - new Date(e.date)) / 86400000);
+if (diff < sd) conflicts.push({msg:"\"" + etype.name + "\" events need " + sd + " days apart - \"" + e.title + "\" is on " + e.date});
+});
+}
+if (room && room.capacity > 0 && parseInt(ev.attendance) > room.capacity)
+conflicts.push({warning:true, msg:"Attendance (" + ev.attendance + ") exceeds " + room.name + " capacity (" + room.capacity + ")"});
+return conflicts;
+}
 function findAltDates(ev, allEvents, rooms, eventTypes, count=3) {
-  const suggestions = [];
-  const check = new Date(ev.date + "T00:00:00");
-  check.setDate(check.getDate()+1);
-  let tries = 0;
-  while (suggestions.length < count && tries < 120) {
-    const ds = check.toISOString().split("T")[0];
-    const cf = detectConflicts({...ev,date:ds}, allEvents, rooms, eventTypes).filter(c => !c.warning);
-    if (cf.length === 0) suggestions.push(ds);
-    check.setDate(check.getDate()+1);
-    tries++;
-  }
-  return suggestions;
+const suggestions = [];
+const check = new Date(ev.date + "T00:00:00");
+check.setDate(check.getDate()+1);
+let tries = 0;
+while (suggestions.length < count && tries < 120) {
+const ds = check.toISOString().split("T")[0];
+const cf = detectConflicts({...ev,date:ds}, allEvents, rooms, eventTypes).filter(c => !c.warning);
+if (cf.length === 0) suggestions.push(ds);
+check.setDate(check.getDate()+1);
+tries++;
 }
-
+return suggestions;
+}
 function typeColor(typeName, eventTypes) {
-  return eventTypes.find(t => t.name === typeName)?.color || GOLD;
+return eventTypes.find(t => t.name === typeName)?.color || GOLD;
 }
-
 function CalendarView({events, eventTypes, onSelect}) {
-  const today = new Date();
-  const [month, setMonth] = useState(today.getMonth());
-  const [year, setYear] = useState(today.getFullYear());
-  const firstDay = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month+1, 0).getDate();
-  const cells = [...Array(firstDay).fill(null), ...Array.from({length:daysInMonth},(_,i)=>i+1)];
-  while (cells.length % 7 !== 0) cells.push(null);
-  const approved = useMemo(() => events.filter(e => e.status === "approved"), [events]);
-  const evsByDay = useMemo(() => {
-    const m = {};
-    approved.forEach(e => {
-      const d = new Date(e.date + "T00:00:00");
-      if (d.getFullYear() === year && d.getMonth() === month) {
-        const k = d.getDate(); if (!m[k]) m[k] = []; m[k].push(e);
-      }
-    });
-    return m;
-  }, [approved, year, month]);
-  const upcoming = approved.filter(e => new Date(e.date+"T23:59:59") >= today).sort((a,b) => a.date > b.date ? 1 : -1);
-  const prevM = () => month === 0 ? (setMonth(11), setYear(y=>y-1)) : setMonth(m=>m-1);
-  const nextM = () => month === 11 ? (setMonth(0), setYear(y=>y+1)) : setMonth(m=>m+1);
-  return (
-    <div className="fade">
-      <div className="card" style={{padding:16,marginBottom:16}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-          <button className="btn-g" style={{padding:"8px 14px"}} onClick={prevM}>{"<"}</button>
-          <div style={{fontWeight:800,fontSize:"1.05rem",color:NAVY}}>{MONTHS[month]} {year}</div>
-          <button className="btn-g" style={{padding:"8px 14px"}} onClick={nextM}>{">"}</button>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
-          {DAYS7.map(d => <div key={d} style={{textAlign:"center",fontSize:".68rem",fontWeight:700,color:"#9ca3af",padding:"4px 0"}}>{d}</div>)}
-          {cells.map((day,i) => {
-            if (!day) return <div key={i} style={{minHeight:52}}/>;
-            const isToday = day===today.getDate() && month===today.getMonth() && year===today.getFullYear();
-            const dayEvs = evsByDay[day] || [];
-            return (
-              <div key={i} style={{borderRadius:8,padding:3,minHeight:52,border:isToday?"2px solid "+GOLD:"1px solid #f0f0f0",background:isToday?"#fffbeb":"#fff"}}>
-                <div style={{fontSize:".7rem",fontWeight:isToday?800:500,color:isToday?GOLD:NAVY,textAlign:"right",paddingRight:3}}>{day}</div>
-                {dayEvs.slice(0,2).map(e => (
-                  <div key={e.id} onClick={()=>onSelect(e)} title={e.title} style={{background:typeColor(e.type,eventTypes),color:"#fff",borderRadius:3,padding:"1px 4px",fontSize:".58rem",fontWeight:600,marginTop:2,cursor:"pointer",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{e.title}</div>
-                ))}
-                {dayEvs.length > 2 && <div style={{fontSize:".56rem",color:"#9ca3af",textAlign:"center"}}>+{dayEvs.length-2}</div>}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      <div className="st">Upcoming Events</div>
-      {upcoming.length === 0 && <div className="card" style={{padding:28,textAlign:"center",color:"#9ca3af"}}>No upcoming events scheduled.</div>}
-      {upcoming.slice(0,12).map(e => (
-        <div key={e.id} className="card" style={{padding:14,marginBottom:8,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
-          <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type,eventTypes),flexShrink:0}}/>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
-            <div style={{fontSize:".76rem",color:"#6b7280",marginTop:1}}>{e.room} - {e.date} - {e.start_time}-{e.end_time}</div>
-            <div style={{fontSize:".73rem",color:"#9ca3af"}}>{e.club}</div>
-          </div>
-          <span className="badge bg">Approved</span>
-        </div>
-      ))}
-    </div>
-  );
+const today = new Date();
+const [month, setMonth] = useState(today.getMonth());
+const [year, setYear] = useState(today.getFullYear());
+const firstDay = new Date(year, month, 1).getDay();
+const daysInMonth = new Date(year, month+1, 0).getDate();
+const cells = [...Array(firstDay).fill(null), ...Array.from({length:daysInMonth},(_,i)=>i+1)];
+while (cells.length % 7 !== 0) cells.push(null);
+const approved = useMemo(() => events.filter(e => e.status === "approved"), [events]);
+const evsByDay = useMemo(() => {
+const m = {};
+approved.forEach(e => {
+const d = new Date(e.date + "T00:00:00");
+if (d.getFullYear() === year && d.getMonth() === month) {
+const k = d.getDate(); if (!m[k]) m[k] = []; m[k].push(e);
 }
-
+});
+return m;
+}, [approved, year, month]);
+const upcoming = approved.filter(e => new Date(e.date+"T23:59:59") >= today).sort((a,b) => a.date > b.date ? 1 : -1);
+const prevM = () => month === 0 ? (setMonth(11), setYear(y=>y-1)) : setMonth(m=>m-1);
+const nextM = () => month === 11 ? (setMonth(0), setYear(y=>y+1)) : setMonth(m=>m+1);
+return (
+<div className="fade">
+<div className="card" style={{padding:16,marginBottom:16}}>
+<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+<button className="btn-g" style={{padding:"8px 14px"}} onClick={prevM}>{"<"}</button>
+<div style={{fontWeight:800,fontSize:"1.05rem",color:NAVY}}>{MONTHS[month]} {year}</div>
+<button className="btn-g" style={{padding:"8px 14px"}} onClick={nextM}>{">"}</button>
+</div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+{DAYS7.map(d => <div key={d} style={{textAlign:"center",fontSize:".68rem",fontWeight:700,color:"#9ca3af",padding:"4px 0"}}>{d}</div>)}
+{cells.map((day,i) => {
+if (!day) return <div key={i} style={{minHeight:52}}/>;
+const isToday = day===today.getDate() && month===today.getMonth() && year===today.getFullYear();
+const dayEvs = evsByDay[day] || [];
+return (
+<div key={i} style={{borderRadius:8,padding:3,minHeight:52,border:isToday?"2px solid "+GOLD:"1px solid #f0f0f0",background:isToday?"#fffbeb":"#fff"}}>
+<div style={{fontSize:".7rem",fontWeight:isToday?800:500,color:isToday?GOLD:NAVY,textAlign:"right",paddingRight:3}}>{day}</div>
+{dayEvs.slice(0,2).map(e => (
+<div key={e.id} onClick={()=>onSelect(e)} title={e.title} style={{background:typeColor(e.type,eventTypes),color:"#fff",borderRadius:3,padding:"1px 4px",fontSize:".58rem",fontWeight:600,marginTop:2,cursor:"pointer",overflow:"hidden",whiteSpace:"nowrap",textOverflow:"ellipsis"}}>{e.title}</div>
+))}
+{dayEvs.length > 2 && <div style={{fontSize:".56rem",color:"#9ca3af",textAlign:"center"}}>+{dayEvs.length-2}</div>}
+</div>
+);
+})}
+</div>
+</div>
+<div className="st">Upcoming Events</div>
+{upcoming.length === 0 && <div className="card" style={{padding:28,textAlign:"center",color:"#9ca3af"}}>No upcoming events scheduled.</div>}
+{upcoming.slice(0,12).map(e => (
+<div key={e.id} className="card" style={{padding:14,marginBottom:8,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
+<div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type,eventTypes),flexShrink:0}}/>
+<div style={{flex:1,minWidth:0}}>
+<div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+<div style={{fontSize:".76rem",color:"#6b7280",marginTop:1}}>{e.room} - {e.date} - {e.start_time}-{e.end_time}</div>
+<div style={{fontSize:".73rem",color:"#9ca3af"}}>{e.club}</div>
+</div>
+<span className="badge bg">Approved</span>
+</div>
+))}
+</div>
+);
+}
 function PrintCalendar({events, month, year, onClose}) {
-  const firstDay = new Date(year,month,1).getDay();
-  const daysInMonth = new Date(year,month+1,0).getDate();
-  const cells = [...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
-  while (cells.length%7!==0) cells.push(null);
-  const evsByDay = {};
-  events.filter(e=>e.status==="approved").forEach(e=>{
-    const d = new Date(e.date+"T00:00:00");
-    if (d.getFullYear()===year&&d.getMonth()===month){const k=d.getDate();if(!evsByDay[k])evsByDay[k]=[];evsByDay[k].push(e);}
-  });
-  return (
-    <Overlay onClose={onClose} wide>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
-        <h2 style={{color:NAVY,fontWeight:800}}>{MONTHS[month]} {year}</h2>
-        <div style={{display:"flex",gap:8}}>
-          <button className="btn-p" onClick={()=>window.print()} style={{padding:"8px 16px"}}>Print</button>
-          <button className="btn-g" onClick={onClose}>Close</button>
-        </div>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,background:"#e5e7eb",border:"1px solid #e5e7eb",borderRadius:8,overflow:"hidden"}}>
-        {DAYS7.map(d=><div key={d} style={{background:NAVY,color:"#fff",textAlign:"center",padding:"8px 4px",fontSize:".75rem",fontWeight:700}}>{d}</div>)}
-        {cells.map((day,i)=>(
-          <div key={i} style={{background:"#fff",minHeight:80,padding:6}}>
-            {day && (
-              <div>
-                <div style={{fontWeight:700,fontSize:".8rem",color:NAVY,marginBottom:4}}>{day}</div>
-                {(evsByDay[day]||[]).map(e=>(
-                  <div key={e.id} style={{background:"#dbeafe",borderLeft:"3px solid "+NAVY,padding:"2px 5px",borderRadius:3,marginBottom:3,fontSize:".68rem",fontWeight:600,color:NAVY}}>{e.start_time} {e.title}</div>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </Overlay>
-  );
+const firstDay = new Date(year,month,1).getDay();
+const daysInMonth = new Date(year,month+1,0).getDate();
+const cells = [...Array(firstDay).fill(null),...Array.from({length:daysInMonth},(_,i)=>i+1)];
+while (cells.length%7!==0) cells.push(null);
+const evsByDay = {};
+events.filter(e=>e.status==="approved").forEach(e=>{
+const d = new Date(e.date+"T00:00:00");
+if (d.getFullYear()===year&&d.getMonth()===month){const k=d.getDate();if(!evsByDay[k])evsByDay[k]=[];evsByDay[k].push(e);}
+});
+return (
+<Overlay onClose={onClose} wide>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+<h2 style={{color:NAVY,fontWeight:800}}>{MONTHS[month]} {year}</h2>
+<div style={{display:"flex",gap:8}}>
+<button className="btn-p" onClick={()=>window.print()} style={{padding:"8px 16px"}}>Print</button>
+<button className="btn-g" onClick={onClose}>Close</button>
+</div>
+</div>
+<div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,background:"#e5e7eb",border:"1px solid #e5e7eb",borderRadius:8,overflow:"hidden"}}>
+{DAYS7.map(d=><div key={d} style={{background:NAVY,color:"#fff",textAlign:"center",padding:"8px 4px",fontSize:".75rem",fontWeight:700}}>{d}</div>)}
+{cells.map((day,i)=>(
+<div key={i} style={{background:"#fff",minHeight:80,padding:6}}>
+{day && (
+<div>
+<div style={{fontWeight:700,fontSize:".8rem",color:NAVY,marginBottom:4}}>{day}</div>
+{(evsByDay[day]||[]).map(e=>(
+<div key={e.id} style={{background:"#dbeafe",borderLeft:"3px solid "+NAVY,padding:"2px 5px",borderRadius:3,marginBottom:3,fontSize:".68rem",fontWeight:600,color:NAVY}}>{e.start_time} {e.title}</div>
+))}
+</div>
+)}
+</div>
+))}
+</div>
+</Overlay>
+);
 }
-
 function SubmitEvent({user, events, rooms, eventTypes, addToast, onRefresh}) {
-  const blank = {title:"",room:"",date:"",start_time:"",end_time:"",attendance:"",type:"",setup_style:"",notes:"",is_off_site:false,off_site_address:"",recurrence:"none",recurrence_end:""};
-  const blankAV = {micsNeeded:false,micCount:1,screenNeeded:false,podiumNeeded:false,podiumPos:"Center",t6:0,t8:0,tRound:0,chairsPer:8,tBanquet:0,tCheckin:0,extraChairs:0,avNotes:""};
-  const [form, setForm] = useState({...blank});
-  const [av, setAv] = useState({...blankAV});
-  const [conflicts, setConflicts] = useState([]);
-  const [altDates, setAltDates] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const set = (k,v) => setForm(p => ({...p,[k]:v}));
-  const setA = (k,v) => setAv(p => ({...p,[k]:v}));
-  useEffect(() => {
-    if (form.room && form.date && form.start_time && form.end_time && form.type) {
-      const cf = detectConflicts({...form,id:null}, events, rooms, eventTypes);
-      setConflicts(cf);
-      if (cf.filter(c=>!c.warning).length > 0) setAltDates(findAltDates({...form,id:null}, events, rooms, eventTypes));
-      else setAltDates([]);
-    } else { setConflicts([]); setAltDates([]); }
-  }, [form.room,form.date,form.start_time,form.end_time,form.type,events,rooms,eventTypes]);
-  const totalChairs = useMemo(() => (av.tRound*av.chairsPer)+(av.tBanquet*10)+(av.t6*6)+(av.t8*8)+(av.tCheckin*2)+parseInt(av.extraChairs||0), [av]);
-  const selRoom = rooms.find(r => r.name === form.room);
-  const blocking = conflicts.filter(c => !c.warning);
-  const warnings = conflicts.filter(c => c.warning);
-  const buildNotes = () => {
-    const lines = [];
-    if (form.setup_style) lines.push("Setup: " + form.setup_style);
-    if (av.micsNeeded) lines.push("Microphones: " + av.micCount);
-    if (av.podiumNeeded) lines.push("Podium: " + av.podiumPos);
-    if (av.screenNeeded) lines.push("Projector/Screen: Yes");
-    if (av.t6>0) lines.push("6ft Tables: " + av.t6);
-    if (av.t8>0) lines.push("8ft Tables: " + av.t8);
-    if (av.tRound>0) lines.push("Round Tables: " + av.tRound + " (" + av.chairsPer + " chairs each)");
-    if (av.tBanquet>0) lines.push("Banquet Tables: " + av.tBanquet);
-    if (av.extraChairs>0) lines.push("Extra Chairs: " + av.extraChairs);
-    if (totalChairs>0) lines.push("Total Chairs: " + totalChairs);
-    if (av.avNotes) lines.push("A/V Notes: " + av.avNotes);
-    return (form.notes||"") + (lines.length > 0 ? "\n\n--- A/V & Equipment ---\n" + lines.join("\n") : "");
-  };
-  const submit = async () => {
-    if (!form.title || !form.date || !form.start_time || !form.end_time || !form.type)
-      return addToast("Please fill in all required fields","e");
-    if (!form.is_off_site && !form.room)
-      return addToast("Please select a room","e");
-    if (form.is_off_site && !form.off_site_address.trim())
-      return addToast("Please enter the venue or address for this off-site event","e");
-    if (blocking.length > 0) return addToast("Resolve conflicts before submitting","e");
-    setLoading(true);
-    const dates = buildDates(form.date, form.recurrence, form.recurrence_end);
-    const allCF = [];
-    for (const d of dates) {
-      const cf = detectConflicts({...form,date:d,id:null}, events, rooms, eventTypes).filter(c=>!c.warning);
-      if (cf.length > 0) allCF.push({date:d, msg:cf[0].msg});
-    }
-    if (allCF.length > 0) {
-      setLoading(false);
-      return addToast(allCF.length + " date(s) have conflicts: " + allCF.slice(0,2).map(c=>c.date).join(", "), "e");
-    }
-    let errCount = 0;
-    for (const d of dates) {
-      const {error} = await sb.from("events").insert({
-        title: form.title,
-        room: form.is_off_site ? "Off-Site" : form.room,
-        date: d, start_time: form.start_time, end_time: form.end_time, type: form.type,
-        attendance: parseInt(form.attendance)||0, status: "approved",
-        submitted_by: user.username || user.email || user.club,
-        club: user.club, notes: buildNotes(),
-        is_off_site: form.is_off_site, off_site_address: form.off_site_address||"",
-      });
-      if (error) errCount++;
-    }
-    if (errCount > 0) { setLoading(false); return addToast(errCount + " event(s) failed to save","e"); }
-    sendEmail(EJTPL_SUB, {to_email:DIR_EMAIL, club_name:user.club, event_title:form.title, event_date:form.date, event_time:form.start_time+"-"+form.end_time, event_room:form.room||"Off-Site", event_type:form.type, attendance:form.attendance});
-    setLoading(false);
-    addToast((dates.length>1?dates.length+" recurring events":"Event") + " submitted and approved!","s");
-    setForm({...blank}); setAv({...blankAV}); onRefresh();
-  };
-  return (
-    <div className="fade">
-      <div className="st">Submit Event Request</div>
-      <div className="card" style={{padding:20}}>
-        <div className="fg">
-          <div><label>Event Title *</label><input value={form.title} onChange={e=>set("title",e.target.value)} placeholder="e.g. Monthly Card Tournament"/></div>
-          <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:"#f8faff",border:"1.5px solid #e0e7ff",borderRadius:10,padding:"10px 14px",fontWeight:600,fontSize:".875rem",color:NAVY}}>
-            <input type="checkbox" style={{width:18,height:18,margin:0,accentColor:NAVY}} checked={form.is_off_site} onChange={e=>set("is_off_site",e.target.checked)}/>
-            This is an Off-Site Event
-          </label>
-          {!form.is_off_site && (
-            <div>
-              <div><label>Room *</label>
-                <select value={form.room} onChange={e=>set("room",e.target.value)}>
-                  <option value="">Select a room...</option>
-                  {rooms.map(r => <option key={r.id} value={r.name}>{r.name}{r.capacity?" (max "+r.capacity+")":""}</option>)}
-                </select>
-              </div>
-              {selRoom && selRoom.spacing_days > 0 && (
-                <div style={{background:"#dbeafe",border:"1px solid #93c5fd",borderRadius:8,padding:"10px 14px",fontSize:".8rem",color:"#1e40af",marginTop:8}}>
-                  {selRoom.name} requires {selRoom.spacing_days===1?"no same-day bookings":selRoom.spacing_days+" days between events"}.
-                </div>
-              )}
-            </div>
-          )}
-          {form.is_off_site && (
-            <div><label>Venue / Address *</label><input value={form.off_site_address} onChange={e=>set("off_site_address",e.target.value)} placeholder="Full address or venue name"/></div>
-          )}
-          <div className="fr">
-            <div><label>Date *</label><input type="date" value={form.date} onChange={e=>set("date",e.target.value)}/></div>
-            <div><label>Event Type *</label>
-              <select value={form.type} onChange={e=>set("type",e.target.value)}>
-                <option value="">Select type...</option>
-                {eventTypes.map(t => <option key={t.id} value={t.name}>{t.name}{t.spacing_days>0?" ("+t.spacing_days+"d apart)":""}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="fr">
-            <div><label>Start Time *</label><input type="time" value={form.start_time} onChange={e=>set("start_time",e.target.value)}/></div>
-            <div><label>End Time *</label><input type="time" value={form.end_time} onChange={e=>set("end_time",e.target.value)}/></div>
-          </div>
-          <div className="fr">
-            <div><label>Repeats</label>
-              <select value={form.recurrence} onChange={e=>set("recurrence",e.target.value)}>
-                {getRecurrenceOpts(form.date).map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
-              </select>
-            </div>
-            {form.recurrence !== "none" && (
-              <div><label>Repeat Until *</label><input type="date" value={form.recurrence_end} onChange={e=>set("recurrence_end",e.target.value)}/></div>
-            )}
-          </div>
-          {form.recurrence !== "none" && form.date && form.recurrence_end && (
-            <div style={{background:"#f0f4ff",borderRadius:8,padding:"10px 14px",fontSize:".8rem",color:NAVY,fontWeight:600}}>
-              This will create {buildDates(form.date,form.recurrence,form.recurrence_end).length} recurring events
-            </div>
-          )}
-          {!form.is_off_site && (
-            <div className="fr">
-              <div><label>Expected Attendance</label><input type="number" value={form.attendance} onChange={e=>set("attendance",e.target.value)} min="1" placeholder="50"/></div>
-              <div><label>Setup Style</label>
-                <select value={form.setup_style} onChange={e=>set("setup_style",e.target.value)}>
-                  <option value="">Select setup...</option>
-                  {SETUPS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
-          )}
-          {warnings.length > 0 && (
-            <div style={{background:"#ffedd5",border:"1px solid #fed7aa",borderRadius:8,padding:"12px 14px"}}>
-              {warnings.map((c,i) => <div key={i} style={{fontSize:".8rem",color:"#c2410c"}}>Warning: {c.msg}</div>)}
-            </div>
-          )}
-          {blocking.length > 0 && (
-            <div style={{background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"12px 14px"}}>
-              <div style={{fontWeight:700,fontSize:".82rem",color:"#991b1b",marginBottom:6}}>Conflicts Detected - Cannot Submit</div>
-              {blocking.map((c,i) => <div key={i} style={{fontSize:".78rem",color:"#991b1b",marginBottom:4,paddingLeft:8,borderLeft:"2px solid #fca5a5"}}>- {c.msg}</div>)}
-              {altDates.length > 0 && (
-                <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #fca5a5"}}>
-                  <div style={{fontSize:".78rem",fontWeight:700,color:"#991b1b",marginBottom:6}}>Next available dates:</div>
-                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                    {altDates.map(d => (
-                      <button key={d} onClick={()=>set("date",d)} style={{background:"#fff",border:"1.5px solid #991b1b",color:"#991b1b",borderRadius:8,padding:"5px 12px",fontSize:".78rem",fontWeight:700,cursor:"pointer"}}>{d}</button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          <div><label>Notes / Special Instructions</label><textarea value={form.notes} onChange={e=>set("notes",e.target.value)} rows={2} placeholder="Any additional details..."/></div>
-        </div>
-        {!form.is_off_site && (
-          <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #e5e7eb"}}>
-            <div style={{fontWeight:700,color:NAVY,marginBottom:14,fontSize:"1rem"}}>A/V and Equipment Setup</div>
-            <div className="fg">
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-                {[["micsNeeded","Microphone"],["podiumNeeded","Podium"],["screenNeeded","Projector/Screen"]].map(([k,label]) => (
-                  <label key={k} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:".875rem",fontWeight:500,color:"#374151",background:"#f9fafb",border:"1.5px solid #e5e7eb",borderRadius:8,padding:"10px 12px"}}>
-                    <input type="checkbox" style={{width:16,height:16,margin:0,accentColor:NAVY}} checked={av[k]} onChange={e=>setA(k,e.target.checked)}/>
-                    {label}
-                  </label>
-                ))}
-              </div>
-              {av.micsNeeded && (
-                <div className="fr">
-                  <div><label>Number of Microphones</label><input type="number" value={av.micCount} onChange={e=>setA("micCount",parseInt(e.target.value)||1)} min={1}/></div>
-                  <div><label>Podium Position</label>
-                    <select value={av.podiumPos} onChange={e=>setA("podiumPos",e.target.value)} disabled={!av.podiumNeeded}>
-                      <option>Left</option><option>Center</option><option>Right</option>
-                    </select>
-                  </div>
-                </div>
-              )}
-              <div style={{fontWeight:600,fontSize:".8rem",color:NAVY,marginTop:4}}>Tables and Seating</div>
-              <div className="fr">
-                <div><label>6ft Tables</label><input type="number" value={av.t6} onChange={e=>setA("t6",parseInt(e.target.value)||0)} min={0}/></div>
-                <div><label>8ft Tables</label><input type="number" value={av.t8} onChange={e=>setA("t8",parseInt(e.target.value)||0)} min={0}/></div>
-              </div>
-              <div className="fr">
-                <div><label>Round Tables</label><input type="number" value={av.tRound} onChange={e=>setA("tRound",parseInt(e.target.value)||0)} min={0}/></div>
-                <div><label>Chairs per Round Table</label><input type="number" value={av.chairsPer} onChange={e=>setA("chairsPer",parseInt(e.target.value)||8)} min={1} max={12}/></div>
-              </div>
-              <div className="fr">
-                <div><label>Banquet Tables</label><input type="number" value={av.tBanquet} onChange={e=>setA("tBanquet",parseInt(e.target.value)||0)} min={0}/></div>
-                <div><label>Extra Chairs</label><input type="number" value={av.extraChairs} onChange={e=>setA("extraChairs",parseInt(e.target.value)||0)} min={0}/></div>
-              </div>
-              {totalChairs > 0 && (
-                <div style={{background:"#f0f4ff",borderRadius:8,padding:"10px 14px",fontSize:".82rem",color:NAVY,fontWeight:600}}>
-                  Total chair count: {totalChairs}
-                </div>
-              )}
-              <div><label>Additional A/V Notes</label><textarea value={av.avNotes} onChange={e=>setA("avNotes",e.target.value)} rows={2} placeholder="Any special setup requirements..."/></div>
-            </div>
-          </div>
-        )}
-        <button className="btn-p" style={{marginTop:20,width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={submit} disabled={loading||blocking.length>0}>
-          {loading ? <span className="spin"/> : blocking.length>0 ? "Resolve Conflicts First" : "Submit Event Request"}
-        </button>
-      </div>
-    </div>
-  );
+const blank = {title:"",room:"",date:"",start_time:"",end_time:"",attendance:"",type:"",setup_style:"",notes:"",is_off_site:false,off_site_address:"",recurrence:"none",recurrence_end:""};
+const blankAV = {micsNeeded:false,micCount:1,screenNeeded:false,podiumNeeded:false,podiumPos:"Center",t6:0,t8:0,tRound:0,chairsPer:8,tBanquet:0,tCheckin:0,extraChairs:0,avNotes:""};
+const [form, setForm] = useState({...blank});
+const [av, setAv] = useState({...blankAV});
+const [conflicts, setConflicts] = useState([]);
+const [altDates, setAltDates] = useState([]);
+const [loading, setLoading] = useState(false);
+const set = (k,v) => setForm(p => ({...p,[k]:v}));
+const setA = (k,v) => setAv(p => ({...p,[k]:v}));
+useEffect(() => {
+if (form.room && form.date && form.start_time && form.end_time && form.type) {
+const cf = detectConflicts({...form,id:null}, events, rooms, eventTypes);
+setConflicts(cf);
+if (cf.filter(c=>!c.warning).length > 0) setAltDates(findAltDates({...form,id:null}, events, rooms, eventTypes));
+else setAltDates([]);
+} else { setConflicts([]); setAltDates([]); }
+}, [form.room,form.date,form.start_time,form.end_time,form.type,events,rooms,eventTypes]);
+const totalChairs = useMemo(() => (av.tRound*av.chairsPer)+(av.tBanquet*10)+(av.t6*6)+(av.t8*8)+(av.tCheckin*2)+parseInt(av.extraChairs||0), [av]);
+const selRoom = rooms.find(r => r.name === form.room);
+const blocking = conflicts.filter(c => !c.warning);
+const warnings = conflicts.filter(c => c.warning);
+const buildNotes = () => {
+const lines = [];
+if (form.setup_style) lines.push("Setup: " + form.setup_style);
+if (av.micsNeeded) lines.push("Microphones: " + av.micCount);
+if (av.podiumNeeded) lines.push("Podium: " + av.podiumPos);
+if (av.screenNeeded) lines.push("Projector/Screen: Yes");
+if (av.t6>0) lines.push("6ft Tables: " + av.t6);
+if (av.t8>0) lines.push("8ft Tables: " + av.t8);
+if (av.tRound>0) lines.push("Round Tables: " + av.tRound + " (" + av.chairsPer + " chairs each)");
+if (av.tBanquet>0) lines.push("Banquet Tables: " + av.tBanquet);
+if (av.extraChairs>0) lines.push("Extra Chairs: " + av.extraChairs);
+if (totalChairs>0) lines.push("Total Chairs: " + totalChairs);
+if (av.avNotes) lines.push("A/V Notes: " + av.avNotes);
+return (form.notes||"") + (lines.length > 0 ? "\n\n--- A/V & Equipment ---\n" + lines.join("\n") : "");
+};
+const submit = async () => {
+if (!form.title || !form.date || !form.start_time || !form.end_time || !form.type)
+return addToast("Please fill in all required fields","e");
+if (!form.is_off_site && !form.room)
+return addToast("Please select a room","e");
+if (form.is_off_site && !form.off_site_address.trim())
+return addToast("Please enter the venue or address for this off-site event","e");
+if (blocking.length > 0) return addToast("Resolve conflicts before submitting","e");
+setLoading(true);
+const dates = buildDates(form.date, form.recurrence, form.recurrence_end);
+const allCF = [];
+for (const d of dates) {
+const cf = detectConflicts({...form,date:d,id:null}, events, rooms, eventTypes).filter(c=>!c.warning);
+if (cf.length > 0) allCF.push({date:d, msg:cf[0].msg});
 }
-
+if (allCF.length > 0) {
+setLoading(false);
+return addToast(allCF.length + " date(s) have conflicts: " + allCF.slice(0,2).map(c=>c.date).join(", "), "e");
+}
+let errCount = 0;
+for (const d of dates) {
+const {error} = await sb.from("events").insert({
+title: form.title,
+room: form.is_off_site ? "Off-Site" : form.room,
+date: d, start_time: form.start_time, end_time: form.end_time, type: form.type,
+attendance: parseInt(form.attendance)||0, status: "approved",
+submitted_by: user.username || user.email || user.club,
+club: user.club, notes: buildNotes(),
+is_off_site: form.is_off_site, off_site_address: form.off_site_address||"",
+});
+if (error) errCount++;
+}
+if (errCount > 0) { setLoading(false); return addToast(errCount + " event(s) failed to save","e"); }
+sendEmail(EJTPL_SUB, {to_email:DIR_EMAIL, club_name:user.club, event_title:form.title, event_date:form.date, event_time:form.start_time+"-"+form.end_time, event_room:form.room||"Off-Site", event_type:form.type, attendance:form.attendance});
+setLoading(false);
+addToast((dates.length>1?dates.length+" recurring events":"Event") + " submitted and approved!","s");
+setForm({...blank}); setAv({...blankAV}); onRefresh();
+};
+return (
+<div className="fade">
+<div className="st">Submit Event Request</div>
+<div className="card" style={{padding:20}}>
+<div className="fg">
+<div><label>Event Title *</label><input value={form.title} onChange={e=>set("title",e.target.value)} placeholder="e.g. Monthly Card Tournament"/></div>
+<label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:"#f8faff",border:"1.5px solid #e0e7ff",borderRadius:10,padding:"10px 14px",fontWeight:600,fontSize:".875rem",color:NAVY}}>
+<input type="checkbox" style={{width:18,height:18,margin:0,accentColor:NAVY}} checked={form.is_off_site} onChange={e=>set("is_off_site",e.target.checked)}/>
+This is an Off-Site Event
+</label>
+{!form.is_off_site && (
+<div>
+<div><label>Room *</label>
+<select value={form.room} onChange={e=>set("room",e.target.value)}>
+<option value="">Select a room...</option>
+{rooms.map(r => <option key={r.id} value={r.name}>{r.name}{r.capacity?" (max "+r.capacity+")":""}</option>)}
+</select>
+</div>
+{selRoom && selRoom.spacing_days > 0 && (
+<div style={{background:"#dbeafe",border:"1px solid #93c5fd",borderRadius:8,padding:"10px 14px",fontSize:".8rem",color:"#1e40af",marginTop:8}}>
+{selRoom.name} requires {selRoom.spacing_days===1?"no same-day bookings":selRoom.spacing_days+" days between events"}.
+</div>
+)}
+</div>
+)}
+{form.is_off_site && (
+<div><label>Venue / Address *</label><input value={form.off_site_address} onChange={e=>set("off_site_address",e.target.value)} placeholder="Full address or venue name"/></div>
+)}
+<div className="fr">
+<div><label>Date *</label><input type="date" value={form.date} onChange={e=>set("date",e.target.value)}/></div>
+<div><label>Event Type *</label>
+<select value={form.type} onChange={e=>set("type",e.target.value)}>
+<option value="">Select type...</option>
+{eventTypes.map(t => <option key={t.id} value={t.name}>{t.name}{t.spacing_days>0?" ("+t.spacing_days+"d apart)":""}</option>)}
+</select>
+</div>
+</div>
+<div className="fr">
+<div><label>Start Time *</label><input type="time" value={form.start_time} onChange={e=>set("start_time",e.target.value)}/></div>
+<div><label>End Time *</label><input type="time" value={form.end_time} onChange={e=>set("end_time",e.target.value)}/></div>
+</div>
+<div className="fr">
+<div><label>Repeats</label>
+<select value={form.recurrence} onChange={e=>set("recurrence",e.target.value)}>
+{getRecurrenceOpts(form.date).map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+</select>
+</div>
+{form.recurrence !== "none" && (
+<div><label>Repeat Until *</label><input type="date" value={form.recurrence_end} onChange={e=>set("recurrence_end",e.target.value)}/></div>
+)}
+</div>
+{form.recurrence !== "none" && form.date && form.recurrence_end && (
+<div style={{background:"#f0f4ff",borderRadius:8,padding:"10px 14px",fontSize:".8rem",color:NAVY,fontWeight:600}}>
+This will create {buildDates(form.date,form.recurrence,form.recurrence_end).length} recurring events
+</div>
+)}
+{!form.is_off_site && (
+<div className="fr">
+<div><label>Expected Attendance</label><input type="number" value={form.attendance} onChange={e=>set("attendance",e.target.value)} min="1" placeholder="50"/></div>
+<div><label>Setup Style</label>
+<select value={form.setup_style} onChange={e=>set("setup_style",e.target.value)}>
+<option value="">Select setup...</option>
+{SETUPS.map(s => <option key={s} value={s}>{s}</option>)}
+</select>
+</div>
+</div>
+)}
+{warnings.length > 0 && (
+<div style={{background:"#ffedd5",border:"1px solid #fed7aa",borderRadius:8,padding:"12px 14px"}}>
+{warnings.map((c,i) => <div key={i} style={{fontSize:".8rem",color:"#c2410c"}}>Warning: {c.msg}</div>)}
+</div>
+)}
+{blocking.length > 0 && (
+<div style={{background:"#fee2e2",border:"1px solid #fca5a5",borderRadius:8,padding:"12px 14px"}}>
+<div style={{fontWeight:700,fontSize:".82rem",color:"#991b1b",marginBottom:6}}>Conflicts Detected - Cannot Submit</div>
+{blocking.map((c,i) => <div key={i} style={{fontSize:".78rem",color:"#991b1b",marginBottom:4,paddingLeft:8,borderLeft:"2px solid #fca5a5"}}>- {c.msg}</div>)}
+{altDates.length > 0 && (
+<div style={{marginTop:10,paddingTop:10,borderTop:"1px solid #fca5a5"}}>
+<div style={{fontSize:".78rem",fontWeight:700,color:"#991b1b",marginBottom:6}}>Next available dates:</div>
+<div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+{altDates.map(d => (
+<button key={d} onClick={()=>set("date",d)} style={{background:"#fff",border:"1.5px solid #991b1b",color:"#991b1b",borderRadius:8,padding:"5px 12px",fontSize:".78rem",fontWeight:700,cursor:"pointer"}}>{d}</button>
+))}
+</div>
+</div>
+)}
+</div>
+)}
+<div><label>Notes / Special Instructions</label><textarea value={form.notes} onChange={e=>set("notes",e.target.value)} rows={2} placeholder="Any additional details..."/></div>
+</div>
+{!form.is_off_site && (
+<div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #e5e7eb"}}>
+<div style={{fontWeight:700,color:NAVY,marginBottom:14,fontSize:"1rem"}}>A/V and Equipment Setup</div>
+<div className="fg">
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+{[["micsNeeded","Microphone"],["podiumNeeded","Podium"],["screenNeeded","Projector/Screen"]].map(([k,label]) => (
+<label key={k} style={{display:"flex",alignItems:"center",gap:8,cursor:"pointer",fontSize:".875rem",fontWeight:500,color:"#374151",background:"#f9fafb",border:"1.5px solid #e5e7eb",borderRadius:8,padding:"10px 12px"}}>
+<input type="checkbox" style={{width:16,height:16,margin:0,accentColor:NAVY}} checked={av[k]} onChange={e=>setA(k,e.target.checked)}/>
+{label}
+</label>
+))}
+</div>
+{av.micsNeeded && (
+<div className="fr">
+<div><label>Number of Microphones</label><input type="number" value={av.micCount} onChange={e=>setA("micCount",parseInt(e.target.value)||1)} min={1}/></div>
+<div><label>Podium Position</label>
+<select value={av.podiumPos} onChange={e=>setA("podiumPos",e.target.value)} disabled={!av.podiumNeeded}>
+<option>Left</option><option>Center</option><option>Right</option>
+</select>
+</div>
+</div>
+)}
+<div style={{fontWeight:600,fontSize:".8rem",color:NAVY,marginTop:4}}>Tables and Seating</div>
+<div className="fr">
+<div><label>6ft Tables</label><input type="number" value={av.t6} onChange={e=>setA("t6",parseInt(e.target.value)||0)} min={0}/></div>
+<div><label>8ft Tables</label><input type="number" value={av.t8} onChange={e=>setA("t8",parseInt(e.target.value)||0)} min={0}/></div>
+</div>
+<div className="fr">
+<div><label>Round Tables</label><input type="number" value={av.tRound} onChange={e=>setA("tRound",parseInt(e.target.value)||0)} min={0}/></div>
+<div><label>Chairs per Round Table</label><input type="number" value={av.chairsPer} onChange={e=>setA("chairsPer",parseInt(e.target.value)||8)} min={1} max={12}/></div>
+</div>
+<div className="fr">
+<div><label>Banquet Tables</label><input type="number" value={av.tBanquet} onChange={e=>setA("tBanquet",parseInt(e.target.value)||0)} min={0}/></div>
+<div><label>Extra Chairs</label><input type="number" value={av.extraChairs} onChange={e=>setA("extraChairs",parseInt(e.target.value)||0)} min={0}/></div>
+</div>
+{totalChairs > 0 && (
+<div style={{background:"#f0f4ff",borderRadius:8,padding:"10px 14px",fontSize:".82rem",color:NAVY,fontWeight:600}}>
+Total chair count: {totalChairs}
+</div>
+)}
+<div><label>Additional A/V Notes</label><textarea value={av.avNotes} onChange={e=>setA("avNotes",e.target.value)} rows={2} placeholder="Any special setup requirements..."/></div>
+</div>
+</div>
+)}
+<button className="btn-p" style={{marginTop:20,width:"100%",padding:"13px 0",fontSize:"1rem"}} onClick={submit} disabled={loading||blocking.length>0}>
+{loading ? <span className="spin"/> : blocking.length>0 ? "Resolve Conflicts First" : "Submit Event Request"}
+</button>
+</div>
+</div>
+);
+}
 function MyEvents({user, events, eventTypes, onSelect}) {
-  const mine = events.filter(e => e.club === user.club).sort((a,b) => b.date > a.date ? 1 : -1);
-  const sb2 = s => s==="approved"?<span className="badge bg">Approved</span>:s==="pending"?<span className="badge by">Pending</span>:<span className="badge br">Cancelled</span>;
-  return (
-    <div className="fade">
-      <div className="st">My Events ({mine.length})</div>
-      {mine.length === 0 && <div className="card" style={{padding:32,textAlign:"center",color:"#9ca3af"}}>No events yet. Go to Submit to create your first event!</div>}
-      {mine.map(e => (
-        <div key={e.id} className="card" style={{padding:14,marginBottom:10,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
-          <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type,eventTypes),flexShrink:0}}/>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
-            <div style={{fontSize:".76rem",color:"#6b7280",marginTop:1}}>{e.room} - {e.date} - {e.start_time}-{e.end_time}</div>
-          </div>
-          {sb2(e.status)}
-        </div>
-      ))}
-    </div>
-  );
+const mine = events.filter(e => e.club === user.club).sort((a,b) => b.date > a.date ? 1 : -1);
+const sb2 = s => s==="approved"?<span className="badge bg">Approved</span>:s==="pending"?<span className="badge by">Pending</span>:<span className="badge br">Cancelled</span>;
+return (
+<div className="fade">
+<div className="st">My Events ({mine.length})</div>
+{mine.length === 0 && <div className="card" style={{padding:32,textAlign:"center",color:"#9ca3af"}}>No events yet. Go to Submit to create your first event!</div>}
+{mine.map(e => (
+<div key={e.id} className="card" style={{padding:14,marginBottom:10,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
+<div style={{width:4,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type,eventTypes),flexShrink:0}}/>
+<div style={{flex:1,minWidth:0}}>
+<div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+<div style={{fontSize:".76rem",color:"#6b7280",marginTop:1}}>{e.room} - {e.date} - {e.start_time}-{e.end_time}</div>
+</div>
+{sb2(e.status)}
+</div>
+))}
+</div>
+);
 }
-
 function ClubDirectory({clubUsers}) {
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("all");
-  const clubs = clubUsers
-    .filter(u => u.role !== "director" && u.account_status !== "inactive")
-    .filter(u => filter==="all" || (filter==="clubs"&&u.type==="club") || (filter==="committees"&&u.type==="committee"))
-    .filter(u => !search || (u.club||"").toLowerCase().includes(search.toLowerCase()) || (u.president||"").toLowerCase().includes(search.toLowerCase()))
-    .sort((a,b) => a.club > b.club ? 1 : -1);
-  return (
-    <div className="fade">
-      <div className="st">Club and Committee Directory</div>
-      <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
-        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search clubs..." style={{flex:1,minWidth:160}}/>
-        {["all","clubs","committees"].map(f => (
-          <button key={f} onClick={()=>setFilter(f)} style={{padding:"8px 16px",borderRadius:20,fontWeight:700,fontSize:".8rem",border:"none",cursor:"pointer",background:filter===f?NAVY:"#e5e7eb",color:filter===f?"#fff":NAVY,textTransform:"capitalize"}}>{f==="all"?"All":f==="clubs"?"Clubs":"Committees"}</button>
-        ))}
-      </div>
-      {clubs.length === 0 && <div className="card" style={{padding:28,textAlign:"center",color:"#9ca3af"}}>No results found.</div>}
-      <div style={{display:"grid",gap:10,gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))"}}>
-        {clubs.map(u => (
-          <div key={u.id} className="card" style={{padding:16}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-              <div style={{fontWeight:800,color:NAVY,fontSize:".95rem"}}>{u.club}</div>
-              <span className={"badge " + (u.type==="committee"?"bp":"bb")}>{u.type}</span>
-            </div>
-            {u.president && <div style={{fontSize:".8rem",color:"#374151",marginBottom:4}}>Contact: {u.president}</div>}
-            {u.phone && <div style={{fontSize:".8rem",color:"#374151",marginBottom:4}}>Phone: {u.phone}</div>}
-            {u.email && <div style={{fontSize:".8rem",color:NAVY,marginBottom:4}}>Email: {u.email}</div>}
-            {u.meeting_schedule && <div style={{fontSize:".78rem",color:"#6b7280",marginTop:6,paddingTop:6,borderTop:"1px solid #f0f0f0"}}>Meets: {u.meeting_schedule}</div>}
-            {u.meeting_room && <div style={{fontSize:".78rem",color:"#6b7280"}}>Room: {u.meeting_room}</div>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+const [search, setSearch] = useState("");
+const [filter, setFilter] = useState("all");
+const clubs = clubUsers
+.filter(u => u.role !== "director" && u.account_status !== "inactive")
+.filter(u => filter==="all" || (filter==="clubs"&&u.type==="club") || (filter==="committees"&&u.type==="committee"))
+.filter(u => !search || (u.club||"").toLowerCase().includes(search.toLowerCase()) || (u.president||"").toLowerCase().includes(search.toLowerCase()))
+.sort((a,b) => a.club > b.club ? 1 : -1);
+return (
+<div className="fade">
+<div className="st">Club and Committee Directory</div>
+<div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+<input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search clubs..." style={{flex:1,minWidth:160}}/>
+{["all","clubs","committees"].map(f => (
+<button key={f} onClick={()=>setFilter(f)} style={{padding:"8px 16px",borderRadius:20,fontWeight:700,fontSize:".8rem",border:"none",cursor:"pointer",background:filter===f?NAVY:"#e5e7eb",color:filter===f?"#fff":NAVY,textTransform:"capitalize"}}>{f==="all"?"All":f==="clubs"?"Clubs":"Committees"}</button>
+))}
+</div>
+{clubs.length === 0 && <div className="card" style={{padding:28,textAlign:"center",color:"#9ca3af"}}>No results found.</div>}
+<div style={{display:"grid",gap:10,gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))"}}>
+{clubs.map(u => (
+<div key={u.id} className="card" style={{padding:16}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+<div style={{fontWeight:800,color:NAVY,fontSize:".95rem"}}>{u.club}</div>
+<span className={"badge " + (u.type==="committee"?"bp":"bb")}>{u.type}</span>
+</div>
+{u.president && <div style={{fontSize:".8rem",color:"#374151",marginBottom:4}}>Contact: {u.president}</div>}
+{u.phone && <div style={{fontSize:".8rem",color:"#374151",marginBottom:4}}>Phone: {u.phone}</div>}
+{u.email && <div style={{fontSize:".8rem",color:NAVY,marginBottom:4}}>Email: {u.email}</div>}
+{u.meeting_schedule && <div style={{fontSize:".78rem",color:"#6b7280",marginTop:6,paddingTop:6,borderTop:"1px solid #f0f0f0"}}>Meets: {u.meeting_schedule}</div>}
+{u.meeting_room && <div style={{fontSize:".78rem",color:"#6b7280"}}>Room: {u.meeting_room}</div>}
+</div>
+))}
+</div>
+</div>
+);
 }
-
+</script>
+<script type="text/babel">
 function Dashboard({events, eventTypes, rooms, clubUsers, onSelect, addToast, onRefresh}) {
-  const today = new Date();
-  const pending = events.filter(e => e.status === "pending");
-  const upcoming = events.filter(e => e.status==="approved" && new Date(e.date+"T23:59:59")>=today).sort((a,b)=>a.date>b.date?1:-1);
-  const pendingStaff = clubUsers.filter(u => u.account_status === "pending");
-  const [editEv, setEditEv] = useState(null);
-  const [showPrint, setShowPrint] = useState(false);
-  const [printMonth, setPrintMonth] = useState(today.getMonth());
-  const [printYear, setPrintYear] = useState(today.getFullYear());
-  const [selected, setSelected] = useState(new Set());
-
-  const bulkApprove = async () => {
-    await Promise.all([...selected].map(id => sb.from("events").update({status:"approved"}).eq("id",id)));
-    addToast("Approved " + selected.size + " events","s"); setSelected(new Set()); onRefresh();
-  };
-  const bulkCancel = async () => {
-    if (!confirm("Cancel " + selected.size + " events?")) return;
-    await Promise.all([...selected].map(id => sb.from("events").update({status:"cancelled"}).eq("id",id)));
-    addToast("Cancelled " + selected.size + " events","e"); setSelected(new Set()); onRefresh();
-  };
-  const bulkSave = async () => {
-    const updates = {};
-    if (editEv.room) updates.room = editEv.room;
-    if (editEv.date) updates.date = editEv.date;
-    if (editEv.start_time) updates.start_time = editEv.start_time;
-    if (editEv.end_time) updates.end_time = editEv.end_time;
-    if (editEv.attendance) updates.attendance = parseInt(editEv.attendance)||0;
-    if (editEv.status) updates.status = editEv.status;
-    await Promise.all([...selected].map(id => sb.from("events").update(updates).eq("id",id)));
-    addToast("Updated " + selected.size + " events","s"); setEditEv(null); setSelected(new Set()); onRefresh();
-  };
-
-  const approveEvent = async id => {
-    const ev = events.find(e => e.id === id);
-    await sb.from("events").update({status:"approved"}).eq("id",id);
-    addToast("Event approved","s");
-    if (ev) { const club = clubUsers.find(u => u.club===ev.club); sendEmail(EJTPL_APR,{to_email:club?.email||"",club_name:ev.club,event_title:ev.title,event_date:ev.date,event_time:ev.start_time+"-"+ev.end_time,event_room:ev.room}); }
-    onRefresh();
-  };
-  const rejectEvent = async id => { await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Event rejected","e"); onRefresh(); };
-  const cancelEvent = async id => { if(!confirm("Cancel this event?"))return; await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Event cancelled","e"); onRefresh(); };
-  const approveStaff = async u => { await sb.from("club_users").update({account_status:"active"}).eq("id",u.id); addToast(u.club+" approved","s"); onRefresh(); };
-  const rejectStaff = async u => { await sb.from("club_users").update({account_status:"inactive"}).eq("id",u.id); addToast(u.club+" rejected","e"); onRefresh(); };
-  const saveEdit = async () => {
-    await sb.from("events").update({title:editEv.title,room:editEv.room,date:editEv.date,start_time:editEv.start_time,end_time:editEv.end_time,attendance:parseInt(editEv.attendance)||0,notes:editEv.notes,status:editEv.status}).eq("id",editEv.id);
-    addToast("Event updated","s"); setEditEv(null); onRefresh();
-  };
-  const exportCSV = () => {
-    const h = ["Title","Club","Room","Date","Start","End","Type","Attendance","Status","Notes"];
-    const rows = events.map(e => [e.title,e.club,e.room,e.date,e.start_time,e.end_time,e.type,e.attendance,e.status,e.notes||""]);
-    const csv = [h,...rows].map(r => r.map(v => '"'+String(v||"").replace(/"/g,'""')+'"').join(",")).join("\n");
-    const a = document.createElement("a"); a.href = "data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv); a.download = "amenityos-export.csv"; a.click();
-  };
-
-  return (
-    <div className="fade">
-      {showPrint && <PrintCalendar events={events} month={printMonth} year={printYear} onClose={()=>setShowPrint(false)}/>}
-
-      {/* Stats */}
-      <div className="sgrid">
-        {[["Upcoming",upcoming.length,NAVY],["Pending",pending.length,"#92400e"],["Requests",pendingStaff.length,"#5b21b6"],["Total",events.length,"#065f46"]].map(([label,count,color]) => (
-          <div key={label} className="card" style={{padding:16,textAlign:"center",borderTop:"3px solid "+color}}>
-            <div style={{fontSize:"1.8rem",fontWeight:800,color,lineHeight:1}}>{count}</div>
-            <div style={{fontSize:".72rem",color:"#6b7280",marginTop:4,fontWeight:600}}>{label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Pending Staff */}
-      {pendingStaff.length > 0 && (
-        <div style={{marginBottom:20}}>
-          <div className="st">Account Requests</div>
-          {pendingStaff.map(u => (
-            <div key={u.id} className="card" style={{padding:14,marginBottom:8,display:"flex",alignItems:"center",gap:12,borderLeft:"3px solid #5b21b6"}}>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:700,color:NAVY}}>{u.club}</div>
-                <div style={{fontSize:".76rem",color:"#6b7280"}}>{u.email||u.username} <span className="badge bp" style={{marginLeft:4}}>{u.type}</span></div>
-              </div>
-              <button className="btn-d" style={{padding:"6px 14px",fontSize:".8rem",borderRadius:20}} onClick={()=>rejectStaff(u)}>Decline</button>
-              <button className="btn-p" style={{padding:"6px 14px",fontSize:".8rem",borderRadius:20}} onClick={()=>approveStaff(u)}>Approve</button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Pending Events */}
-      {pending.length > 0 && (
-        <div style={{marginBottom:20}}>
-          <div className="st">Awaiting Approval</div>
-          {pending.map(e => (
-            <div key={e.id} className="card" style={{padding:16,marginBottom:10,borderLeft:"3px solid #f59e0b"}}>
-              <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:12}}>
-                <div style={{width:36,height:36,borderRadius:10,background:typeColor(e.type,eventTypes),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:".7rem",fontWeight:800,flexShrink:0}}>
-                  {(e.type||"?").slice(0,2).toUpperCase()}
-                </div>
-                <div style={{flex:1,cursor:"pointer"}} onClick={()=>onSelect(e)}>
-                  <div style={{fontWeight:700,color:NAVY,fontSize:".95rem"}}>{e.title}</div>
-                  <div style={{fontSize:".76rem",color:"#6b7280",marginTop:2}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
-                </div>
-              </div>
-              <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
-                <button style={{padding:"7px 18px",fontSize:".82rem",border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>rejectEvent(e.id)}>Decline</button>
-                <button style={{padding:"7px 18px",fontSize:".82rem",background:NAVY,color:"#fff",border:"none",borderRadius:20,fontWeight:700,cursor:"pointer"}} onClick={()=>approveEvent(e.id)}>Approve</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Upcoming Events — Multi-select */}
-      <div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div className="st" style={{margin:0}}>Upcoming Events</div>
-            {selected.size > 0 && (
-              <span style={{background:NAVY,color:"#fff",borderRadius:20,padding:"3px 12px",fontSize:".75rem",fontWeight:700}}>{selected.size} selected</span>
-            )}
-          </div>
-          <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-            {selected.size > 0 ? (
-              <>
-                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#374151"}} onClick={()=>setSelected(new Set())}>Clear</button>
-                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#065f46"}} onClick={bulkApprove}>Approve All</button>
-                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff7ed",border:"1.5px solid #fdba74",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#92400e"}} onClick={()=>setEditEv({...upcoming.find(e=>selected.has(e.id)),_bulk:true})}>Edit Selected</button>
-                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fef2f2",border:"1.5px solid #fca5a5",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#991b1b"}} onClick={bulkCancel}>Cancel All</button>
-              </>
-            ) : (
-              <>
-                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:NAVY}} onClick={()=>setShowPrint(true)}>Print</button>
-                <button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:NAVY}} onClick={exportCSV}>Export CSV</button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {upcoming.length === 0 && (
-          <div className="card" style={{padding:32,textAlign:"center",color:"#9ca3af"}}>
-            <div style={{fontSize:"2rem",marginBottom:8}}>📅</div>
-            No upcoming approved events.
-          </div>
-        )}
-
-        {/* Select All bar */}
-        {upcoming.length > 0 && (
-          <div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 14px",background:"#f8faff",borderRadius:10,marginBottom:8,border:"1.5px solid #e0e7ff"}}>
-            <input type="checkbox"
-              style={{width:16,height:16,accentColor:NAVY,cursor:"pointer"}}
-              checked={selected.size === upcoming.length && upcoming.length > 0}
-              onChange={e => setSelected(e.target.checked ? new Set(upcoming.map(ev=>ev.id)) : new Set())}
-            />
-            <span style={{fontSize:".78rem",fontWeight:600,color:NAVY}}>Select all {upcoming.length} events</span>
-          </div>
-        )}
-
-        {upcoming.map(e => {
-          const isSel = selected.has(e.id);
-          return (
-            <div key={e.id} className="card" style={{padding:"12px 14px",marginBottom:6,display:"flex",gap:10,alignItems:"center",border:isSel?"1.5px solid "+NAVY:"1.5px solid #e5e7eb",background:isSel?"#f0f4ff":"#fff",transition:"all .15s"}}>
-              <input type="checkbox"
-                style={{width:16,height:16,accentColor:NAVY,cursor:"pointer",flexShrink:0}}
-                checked={isSel}
-                onChange={ev => { const s = new Set(selected); ev.target.checked ? s.add(e.id) : s.delete(e.id); setSelected(s); }}
-              />
-              <div style={{width:36,height:36,borderRadius:10,background:typeColor(e.type,eventTypes),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:".7rem",fontWeight:800,flexShrink:0}}>
-                {(e.type||"?").slice(0,2).toUpperCase()}
-              </div>
-              <div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>onSelect(e)}>
-                <div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
-                <div style={{fontSize:".74rem",color:"#6b7280",marginTop:1}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
-              </div>
-              <div style={{display:"flex",gap:6,flexShrink:0}}>
-                <button style={{padding:"5px 12px",fontSize:".78rem",background:"#f3f4f6",color:"#374151",border:"none",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>setEditEv({...e})}>Edit</button>
-                <button style={{padding:"5px 12px",fontSize:".78rem",background:"#fee2e2",color:"#991b1b",border:"none",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>cancelEvent(e.id)}>Cancel</button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Edit Event Modal */}
-      {editEv && (
-        <Overlay onClose={()=>setEditEv(null)} wide>
-          <h3 style={{color:NAVY,fontWeight:800,marginBottom:4}}>{editEv._bulk ? "Bulk Edit " + selected.size + " Events" : "Edit Event"}</h3>
-          {editEv._bulk && <p style={{fontSize:".8rem",color:"#6b7280",marginBottom:18}}>Only filled fields will be updated. Leave blank to keep existing values.</p>}
-          <div className="fg">
-            {!editEv._bulk && <div><label>Title</label><input value={editEv.title} onChange={e=>setEditEv(p=>({...p,title:e.target.value}))}/></div>}
-            <div className="fr">
-              <div><label>Room {editEv._bulk&&"(optional)"}</label>
-                <select value={editEv.room||""} onChange={e=>setEditEv(p=>({...p,room:e.target.value}))}>
-                  <option value="">{editEv._bulk?"— Keep existing —":"Select room"}</option>
-                  {rooms.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
-                </select>
-              </div>
-              <div><label>Date {editEv._bulk&&"(optional)"}</label><input type="date" value={editEv.date||""} onChange={e=>setEditEv(p=>({...p,date:e.target.value}))}/></div>
-            </div>
-            <div className="fr">
-              <div><label>Start Time {editEv._bulk&&"(optional)"}</label><input type="time" value={editEv.start_time||""} onChange={e=>setEditEv(p=>({...p,start_time:e.target.value}))}/></div>
-              <div><label>End Time {editEv._bulk&&"(optional)"}</label><input type="time" value={editEv.end_time||""} onChange={e=>setEditEv(p=>({...p,end_time:e.target.value}))}/></div>
-            </div>
-            <div className="fr">
-              <div><label>Attendance {editEv._bulk&&"(optional)"}</label><input type="number" value={editEv.attendance||""} onChange={e=>setEditEv(p=>({...p,attendance:e.target.value}))}/></div>
-              <div><label>Status</label>
-                <select value={editEv.status||"approved"} onChange={e=>setEditEv(p=>({...p,status:e.target.value}))}>
-                  <option value="approved">Approved</option>
-                  <option value="pending">Pending</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </div>
-            </div>
-            {!editEv._bulk && <div><label>Notes</label><textarea value={editEv.notes||""} onChange={e=>setEditEv(p=>({...p,notes:e.target.value}))} rows={3}/></div>}
-          </div>
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
-            <button style={{padding:"9px 20px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,cursor:"pointer"}} onClick={()=>setEditEv(null)}>Cancel</button>
-            <button style={{padding:"9px 20px",borderRadius:20,background:NAVY,color:"#fff",border:"none",fontWeight:700,cursor:"pointer"}} onClick={editEv._bulk ? bulkSave : saveEdit}>
-              {editEv._bulk ? "Update " + selected.size + " Events" : "Save Changes"}
-            </button>
-          </div>
-        </Overlay>
-      )}
-    </div>
-  );
+const today = new Date();
+const todayStr = today.toISOString().split("T")[0];
+const pending = events.filter(e => e.status === "pending");
+const upcoming = events.filter(e => e.status==="approved" && new Date(e.date+"T23:59:59")>=today).sort((a,b)=>a.date>b.date?1:-1);
+const todayEvents = events.filter(e => e.status==="approved" && e.date===todayStr).sort((a,b)=>a.start_time>b.start_time?1:-1);
+const pendingStaff = clubUsers.filter(u => u.account_status === "pending");
+const [editEv, setEditEv] = useState(null);
+const [showPrint, setShowPrint] = useState(false);
+const [printMonth, setPrintMonth] = useState(today.getMonth());
+const [printYear, setPrintYear] = useState(today.getFullYear());
+const [selected, setSelected] = useState(new Set());
+const [search, setSearch] = useState("");
+const bulkApprove = async () => {
+await Promise.all([...selected].map(id => sb.from("events").update({status:"approved"}).eq("id",id)));
+addToast("Approved " + selected.size + " events","s"); setSelected(new Set()); onRefresh();
+};
+const bulkCancel = async () => {
+if (!confirm("Cancel " + selected.size + " events?")) return;
+await Promise.all([...selected].map(id => sb.from("events").update({status:"cancelled"}).eq("id",id)));
+addToast("Cancelled " + selected.size + " events","e"); setSelected(new Set()); onRefresh();
+};
+const bulkSave = async () => {
+const updates = {};
+if (editEv.room) updates.room = editEv.room;
+if (editEv.date) updates.date = editEv.date;
+if (editEv.start_time) updates.start_time = editEv.start_time;
+if (editEv.end_time) updates.end_time = editEv.end_time;
+if (editEv.attendance) updates.attendance = parseInt(editEv.attendance)||0;
+if (editEv.status) updates.status = editEv.status;
+await Promise.all([...selected].map(id => sb.from("events").update(updates).eq("id",id)));
+addToast("Updated " + selected.size + " events","s"); setEditEv(null); setSelected(new Set()); onRefresh();
+};
+const approveEvent = async id => {
+const ev = events.find(e => e.id === id);
+await sb.from("events").update({status:"approved"}).eq("id",id);
+addToast("Event approved","s");
+if (ev) { const club = clubUsers.find(u => u.club===ev.club); sendEmail(EJTPL_APR,{to_email:club?.email||"",club_name:ev.club,event_title:ev.title,event_date:ev.date,event_time:ev.start_time+"-"+ev.end_time,event_room:ev.room}); }
+onRefresh();
+};
+const rejectEvent = async id => { await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Event declined","e"); onRefresh(); };
+const cancelEvent = async id => { if(!confirm("Cancel this event?"))return; await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Cancelled","e"); onRefresh(); };
+const approveStaff = async u => { await sb.from("club_users").update({account_status:"active"}).eq("id",u.id); addToast(u.club+" approved","s"); onRefresh(); };
+const rejectStaff = async u => { await sb.from("club_users").update({account_status:"inactive"}).eq("id",u.id); addToast(u.club+" declined","e"); onRefresh(); };
+const saveEdit = async () => {
+if (editEv._bulk) { bulkSave(); return; }
+await sb.from("events").update({title:editEv.title,room:editEv.room,date:editEv.date,start_time:editEv.start_time,end_time:editEv.end_time,attendance:parseInt(editEv.attendance)||0,notes:editEv.notes,status:editEv.status}).eq("id",editEv.id);
+addToast("Event updated","s"); setEditEv(null); onRefresh();
+};
+const exportCSV = () => {
+const h = ["Title","Club","Room","Date","Start","End","Type","Attendance","Status","Notes"];
+const rows = events.map(e => [e.title,e.club,e.room,e.date,e.start_time,e.end_time,e.type,e.attendance,e.status,e.notes||""]);
+const csv = [h,...rows].map(r => r.map(v => '"'+String(v||"").replace(/"/g,'""')+'"').join(",")).join("\n");
+const a = document.createElement("a"); a.href = "data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv); a.download = "amenityos-export.csv"; a.click();
+};
+const now = today.getHours()*60 + today.getMinutes();
+const roomStatus = rooms.map(r => {
+const bookedNow = todayEvents.find(e => e.room===r.name && (() => {
+const [sh,sm] = (e.start_time||"00:00").split(":").map(Number);
+const [eh,em] = (e.end_time||"00:00").split(":").map(Number);
+return now >= sh*60+sm && now < eh*60+em;
+})());
+const bookedToday = todayEvents.find(e => e.room===r.name && !bookedNow);
+return {room:r, bookedNow, bookedToday};
+});
+const filtered = upcoming.filter(e => {
+if (!search) return true;
+const q = search.toLowerCase();
+return (e.title||"").toLowerCase().includes(q) || (e.club||"").toLowerCase().includes(q) || (e.room||"").toLowerCase().includes(q);
+});
+const fmt12 = t => { if(!t)return""; const [h,m]=t.split(":"); const hh=parseInt(h); return (hh%12||12)+":"+(m||"00")+" "+(hh<12?"AM":"PM"); };
+return (
+<div className="fade">
+{showPrint && <PrintCalendar events={events} month={printMonth} year={printYear} onClose={()=>setShowPrint(false)}/>}
+{/* Header */}
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20,flexWrap:"wrap",gap:10}}>
+<div>
+<div style={{fontWeight:800,fontSize:"1.4rem",color:NAVY,letterSpacing:"-.02em"}}>Community Dashboard</div>
+<div style={{fontSize:".82rem",color:"#6b7280",marginTop:2}}>Valencia Isles · {today.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}</div>
+</div>
+<div style={{display:"flex",gap:8}}>
+<button style={{padding:"8px 16px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:NAVY,fontWeight:600,fontSize:".82rem",cursor:"pointer"}} onClick={()=>setShowPrint(true)}>Print Calendar</button>
+<button style={{padding:"8px 16px",borderRadius:20,border:"none",background:NAVY,color:"#fff",fontWeight:700,fontSize:".82rem",cursor:"pointer"}} onClick={exportCSV}>Export CSV</button>
+</div>
+</div>
+{/* Stat Cards */}
+<div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginBottom:20}}>
+{[
+["Today", todayEvents.length, "📅", "#3b82f6"],
+["Pending", pending.length + pendingStaff.length, "⏳", "#f59e0b"],
+["Upcoming", upcoming.length, "✅", "#10b981"],
+["Total Events", events.length, "📋", "#8b5cf6"],
+].map(([label,count,icon,color]) => (
+<div key={label} className="card" style={{padding:18,position:"relative",overflow:"hidden"}}>
+<div style={{fontSize:"1.9rem",fontWeight:800,color,lineHeight:1}}>{count}</div>
+<div style={{fontSize:".75rem",color:"#6b7280",marginTop:4,fontWeight:600}}>{label}</div>
+<div style={{position:"absolute",right:12,top:12,fontSize:"1.4rem",opacity:.15}}>{icon}</div>
+</div>
+))}
+</div>
+{/* Pending approvals */}
+{(pending.length > 0 || pendingStaff.length > 0) && (
+<div style={{marginBottom:20}}>
+<div style={{fontWeight:700,fontSize:".9rem",color:NAVY,marginBottom:10}}>Needs Your Attention</div>
+<div style={{display:"grid",gap:8}}>
+{pendingStaff.map(u => (
+<div key={u.id} className="card" style={{padding:14,display:"flex",alignItems:"center",gap:12,borderLeft:"3px solid #8b5cf6"}}>
+<div style={{width:36,height:36,borderRadius:10,background:"#ede9fe",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"1rem"}}>👤</div>
+<div style={{flex:1}}>
+<div style={{fontWeight:700,color:NAVY,fontSize:".9rem"}}>{u.club}</div>
+<div style={{fontSize:".75rem",color:"#6b7280"}}>Account request · {u.type}</div>
+</div>
+<button style={{padding:"6px 14px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,fontSize:".78rem",cursor:"pointer"}} onClick={()=>rejectStaff(u)}>Decline</button>
+<button style={{padding:"6px 14px",borderRadius:20,border:"none",background:NAVY,color:"#fff",fontWeight:700,fontSize:".78rem",cursor:"pointer"}} onClick={()=>approveStaff(u)}>Approve</button>
+</div>
+))}
+{pending.map(e => (
+<div key={e.id} className="card" style={{padding:14,display:"flex",alignItems:"center",gap:12,borderLeft:"3px solid #f59e0b"}}>
+<div style={{width:36,height:36,borderRadius:10,background:typeColor(e.type,eventTypes),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:".72rem",fontWeight:800,flexShrink:0}}>{(e.type||"?").slice(0,2).toUpperCase()}</div>
+<div style={{flex:1,cursor:"pointer",minWidth:0}} onClick={()=>onSelect(e)}>
+<div style={{fontWeight:700,color:NAVY,fontSize:".9rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+<div style={{fontSize:".75rem",color:"#6b7280"}}>{e.club} · {e.room} · {e.date} · {fmt12(e.start_time)}</div>
+</div>
+<button style={{padding:"6px 14px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,fontSize:".78rem",cursor:"pointer"}} onClick={()=>rejectEvent(e.id)}>Decline</button>
+<button style={{padding:"6px 14px",borderRadius:20,border:"none",background:NAVY,color:"#fff",fontWeight:700,fontSize:".78rem",cursor:"pointer"}} onClick={()=>approveEvent(e.id)}>Approve</button>
+</div>
+))}
+</div>
+</div>
+)}
+{/* Two column — Today + Room Status */}
+<div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:20}}>
+{/* Today's Schedule */}
+<div className="card" style={{padding:20}}>
+<div style={{fontWeight:700,fontSize:".95rem",color:NAVY,marginBottom:14}}>Today's Schedule</div>
+{todayEvents.length === 0 ? (
+<div style={{textAlign:"center",color:"#9ca3af",padding:"24px 0",fontSize:".85rem"}}>No events scheduled today</div>
+) : (
+todayEvents.map(e => (
+<div key={e.id} onClick={()=>onSelect(e)} style={{display:"flex",gap:10,alignItems:"flex-start",padding:"10px 0",borderBottom:"1px solid #f3f4f6",cursor:"pointer"}}>
+<div style={{fontSize:".72rem",color:"#6b7280",minWidth:48,fontWeight:600,paddingTop:2}}>{fmt12(e.start_time)}</div>
+<div style={{width:3,alignSelf:"stretch",borderRadius:4,background:typeColor(e.type,eventTypes),flexShrink:0}}/>
+<div style={{flex:1,minWidth:0}}>
+<div style={{fontWeight:700,color:NAVY,fontSize:".875rem",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+<div style={{fontSize:".73rem",color:"#6b7280"}}>{e.room}</div>
+</div>
+<span style={{fontSize:".68rem",padding:"2px 8px",borderRadius:20,background:typeColor(e.type,eventTypes)+"22",color:typeColor(e.type,eventTypes),fontWeight:700,flexShrink:0}}>{e.type}</span>
+</div>
+))
+)}
+</div>
+{/* Room Status */}
+<div className="card" style={{padding:20}}>
+<div style={{fontWeight:700,fontSize:".95rem",color:NAVY,marginBottom:14}}>Room Status</div>
+{roomStatus.slice(0,8).map(({room:r, bookedNow, bookedToday}) => {
+const status = bookedNow ? "In Use" : bookedToday ? "Booked Today" : "Available";
+const color = bookedNow ? "#991b1b" : bookedToday ? "#92400e" : "#065f46";
+const bg = bookedNow ? "#fee2e2" : bookedToday ? "#fef3c7" : "#d1fae5";
+return (
+<div key={r.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:"1px solid #f3f4f6"}}>
+<div>
+<div style={{fontWeight:700,color:NAVY,fontSize:".875rem"}}>{r.name}</div>
+<div style={{fontSize:".72rem",color:"#6b7280"}}>{bookedNow?.title || bookedToday?.title || "Open"}</div>
+</div>
+<span style={{fontSize:".7rem",padding:"3px 10px",borderRadius:20,background:bg,color,fontWeight:700,flexShrink:0}}>{status}</span>
+</div>
+);
+})}
+</div>
+</div>
+{/* Reservation Workflow */}
+<div className="card" style={{padding:20}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14,flexWrap:"wrap",gap:10}}>
+<div>
+<div style={{fontWeight:700,fontSize:".95rem",color:NAVY}}>Reservation Workflow</div>
+<div style={{fontSize:".75rem",color:"#6b7280"}}>Manage upcoming events and approvals</div>
+</div>
+<div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+<input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search events, clubs, rooms..." style={{width:220,padding:"7px 14px",borderRadius:20,border:"1.5px solid #e5e7eb",fontSize:".8rem"}}/>
+{selected.size > 0 && (
+<div style={{display:"flex",gap:6}}>
+<span style={{background:NAVY,color:"#fff",borderRadius:20,padding:"4px 12px",fontSize:".75rem",fontWeight:700,display:"flex",alignItems:"center"}}>{selected.size} selected</span>
+<button style={{padding:"6px 12px",borderRadius:20,border:"none",background:"#f0fdf4",color:"#065f46",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={bulkApprove}>Approve</button>
+<button style={{padding:"6px 12px",borderRadius:20,border:"none",background:"#fff7ed",color:"#92400e",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={()=>setEditEv({...upcoming.find(e=>selected.has(e.id)),_bulk:true})}>Edit</button>
+<button style={{padding:"6px 12px",borderRadius:20,border:"none",background:"#fef2f2",color:"#991b1b",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={bulkCancel}>Cancel</button>
+<button style={{padding:"6px 12px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={()=>setSelected(new Set())}>Clear</button>
+</div>
+)}
+</div>
+</div>
+{/* Select all bar */}
+{filtered.length > 0 && (
+<div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",background:"#f8faff",borderRadius:8,marginBottom:8}}>
+<input type="checkbox" style={{width:15,height:15,accentColor:NAVY,cursor:"pointer"}}
+checked={selected.size===filtered.length&&filtered.length>0}
+onChange={e=>setSelected(e.target.checked?new Set(filtered.map(ev=>ev.id)):new Set())}
+/>
+<span style={{fontSize:".76rem",fontWeight:600,color:NAVY}}>Select all {filtered.length} events</span>
+</div>
+)}
+{/* Table */}
+<div className="tw">
+<table>
+<thead>
+<tr>
+<th style={{width:32}}></th>
+<th>Club</th>
+<th>Event</th>
+<th>Date</th>
+<th>Room</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+{filtered.length === 0 && (
+<tr><td colSpan={7} style={{textAlign:"center",color:"#9ca3af",padding:24}}>No events found</td></tr>
+)}
+{filtered.map(e => {
+const isSel = selected.has(e.id);
+return (
+<tr key={e.id} style={{background:isSel?"#f0f4ff":"",transition:"background .1s"}}>
+<td>
+<input type="checkbox" style={{width:15,height:15,accentColor:NAVY,cursor:"pointer"}}
+checked={isSel}
+onChange={ev=>{const s=new Set(selected);ev.target.checked?s.add(e.id):s.delete(e.id);setSelected(s);}}
+/>
+</td>
+<td style={{fontWeight:600,color:"#374151",fontSize:".82rem"}}>{e.club}</td>
+<td>
+<div style={{fontWeight:700,color:NAVY,fontSize:".85rem",cursor:"pointer",maxWidth:200,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}} onClick={()=>onSelect(e)}>{e.title}</div>
+<div style={{fontSize:".72rem",color:"#9ca3af"}}>{fmt12(e.start_time)} – {fmt12(e.end_time)}</div>
+</td>
+<td style={{fontSize:".82rem",color:"#374151",whiteSpace:"nowrap"}}>{e.date}</td>
+<td style={{fontSize:".82rem",color:"#374151"}}>{e.room}</td>
+<td>
+<span style={{fontSize:".72rem",padding:"3px 10px",borderRadius:20,fontWeight:700,
+background:e.status==="approved"?"#d1fae5":e.status==="pending"?"#fef3c7":"#fee2e2",
+color:e.status==="approved"?"#065f46":e.status==="pending"?"#92400e":"#991b1b"
+}}>{e.status==="approved"?"Approved":e.status==="pending"?"Pending":"Cancelled"}</span>
+</td>
+<td>
+<div style={{display:"flex",gap:6}}>
+<button style={{padding:"4px 10px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={()=>setEditEv({...e})}>Edit</button>
+<button style={{padding:"4px 10px",borderRadius:20,border:"none",background:"#fee2e2",color:"#991b1b",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={()=>cancelEvent(e.id)}>Cancel</button>
+</div>
+</td>
+</tr>
+);
+})}
+</tbody>
+</table>
+</div>
+</div>
+{/* Edit Modal */}
+{editEv && (
+<Overlay onClose={()=>setEditEv(null)} wide>
+<h3 style={{color:NAVY,fontWeight:800,marginBottom:4}}>{editEv._bulk?"Bulk Edit "+selected.size+" Events":"Edit Event"}</h3>
+{editEv._bulk && <p style={{fontSize:".8rem",color:"#6b7280",marginBottom:18}}>Only filled fields will be updated.</p>}
+<div className="fg">
+{!editEv._bulk && <div><label>Title</label><input value={editEv.title||""} onChange={e=>setEditEv(p=>({...p,title:e.target.value}))}/></div>}
+<div className="fr">
+<div><label>Room</label>
+<select value={editEv.room||""} onChange={e=>setEditEv(p=>({...p,room:e.target.value}))}>
+<option value="">{editEv._bulk?"— Keep existing —":"Select room"}</option>
+{rooms.map(r=><option key={r.id} value={r.name}>{r.name}</option>)}
+</select>
+</div>
+<div><label>Date</label><input type="date" value={editEv.date||""} onChange={e=>setEditEv(p=>({...p,date:e.target.value}))}/></div>
+</div>
+<div className="fr">
+<div><label>Start Time</label><input type="time" value={editEv.start_time||""} onChange={e=>setEditEv(p=>({...p,start_time:e.target.value}))}/></div>
+<div><label>End Time</label><input type="time" value={editEv.end_time||""} onChange={e=>setEditEv(p=>({...p,end_time:e.target.value}))}/></div>
+</div>
+<div className="fr">
+<div><label>Attendance</label><input type="number" value={editEv.attendance||""} onChange={e=>setEditEv(p=>({...p,attendance:e.target.value}))}/></div>
+<div><label>Status</label>
+<select value={editEv.status||"approved"} onChange={e=>setEditEv(p=>({...p,status:e.target.value}))}>
+<option value="approved">Approved</option>
+<option value="pending">Pending</option>
+<option value="cancelled">Cancelled</option>
+</select>
+</div>
+</div>
+{!editEv._bulk && <div><label>Notes</label><textarea value={editEv.notes||""} onChange={e=>setEditEv(p=>({...p,notes:e.target.value}))} rows={3}/></div>}
+</div>
+<div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+<button style={{padding:"9px 20px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,cursor:"pointer"}} onClick={()=>setEditEv(null)}>Cancel</button>
+<button style={{padding:"9px 20px",borderRadius:20,background:NAVY,color:"#fff",border:"none",fontWeight:700,cursor:"pointer"}} onClick={saveEdit}>
+{editEv._bulk?"Update "+selected.size+" Events":"Save Changes"}
+</button>
+</div>
+</Overlay>
+)}
+</div>
+);
 }
-
+const approveEvent = async id => {
+const ev = events.find(e => e.id === id);
+await sb.from("events").update({status:"approved"}).eq("id",id);
+addToast("Event approved","s");
+if (ev) { const club = clubUsers.find(u => u.club===ev.club); sendEmail(EJTPL_APR,{to_email:club?.email||"",club_name:ev.club,event_title:ev.title,event_date:ev.date,event_time:ev.start_time+"-"+ev.end_time,event_room:ev.room}); }
+onRefresh();
+};
+const rejectEvent = async id => { await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Event rejected","e"); onRefresh(); };
+const cancelEvent = async id => { if(!confirm("Cancel this event?"))return; await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Event cancelled","e"); onRefresh(); };
+const approveStaff = async u => { await sb.from("club_users").update({account_status:"active"}).eq("id",u.id); addToast(u.club+" approved","s"); onRefresh(); };
+const rejectStaff = async u => { await sb.from("club_users").update({account_status:"inactive"}).eq("id",u.id); addToast(u.club+" rejected","e"); onRefresh(); };
+const saveEdit = async () => {
+await sb.from("events").update({title:editEv.title,room:editEv.room,date:editEv.date,start_time:editEv.start_time,end_time:editEv.end_time,attendance:parseInt(editEv.attendance)||0,notes:editEv.notes,status:editEv.status}).eq("id",editEv.id);
+addToast("Event updated","s"); setEditEv(null); onRefresh();
+};
+const exportCSV = () => {
+const h = ["Title","Club","Room","Date","Start","End","Type","Attendance","Status","Notes"];
+const rows = events.map(e => [e.title,e.club,e.room,e.date,e.start_time,e.end_time,e.type,e.attendance,e.status,e.notes||""]);
+const csv = [h,...rows].map(r => r.map(v => '"'+String(v||"").replace(/"/g,'""')+'"').join(",")).join("\n");
+const a = document.createElement("a"); a.href = "data:text/csv;charset=utf-8,\uFEFF"+encodeURIComponent(csv); a.download = "amenityos-export.csv"; a.click();
+};
+return (
+<div className="fade">
+{showPrint && <PrintCalendar events={events} month={printMonth} year={printYear} onClose={()=>setShowPrint(false)}/>}
+{/* Stats */}
+<div className="sgrid">
+{[["Upcoming",upcoming.length,NAVY],["Pending",pending.length,"#92400e"],["Requests",pendingStaff.length,"#5b21b6"],["Total",events.length,"#065f46"]].map(([label,count,color]) => (
+<div key={label} className="card" style={{padding:16,textAlign:"center",borderTop:"3px solid "+color}}>
+<div style={{fontSize:"1.8rem",fontWeight:800,color,lineHeight:1}}>{count}</div>
+<div style={{fontSize:".72rem",color:"#6b7280",marginTop:4,fontWeight:600}}>{label}</div>
+</div>
+))}
+</div>
+{/* Pending Staff */}
+{pendingStaff.length > 0 && (
+<div style={{marginBottom:20}}>
+<div className="st">Account Requests</div>
+{pendingStaff.map(u => (
+<div key={u.id} className="card" style={{padding:14,marginBottom:8,display:"flex",alignItems:"center",gap:12,borderLeft:"3px solid #5b21b6"}}>
+<div style={{flex:1}}>
+<div style={{fontWeight:700,color:NAVY}}>{u.club}</div>
+<div style={{fontSize:".76rem",color:"#6b7280"}}>{u.email||u.username} <span className="badge bp" style={{marginLeft:4}}>{u.type}</span></div>
+</div>
+<button className="btn-d" style={{padding:"6px 14px",fontSize:".8rem",borderRadius:20}} onClick={()=>rejectStaff(u)}>Decline</button>
+<button className="btn-p" style={{padding:"6px 14px",fontSize:".8rem",borderRadius:20}} onClick={()=>approveStaff(u)}>Approve</button>
+</div>
+))}
+</div>
+)}
+{/* Pending Events */}
+{pending.length > 0 && (
+<div style={{marginBottom:20}}>
+<div className="st">Awaiting Approval</div>
+{pending.map(e => (
+<div key={e.id} className="card" style={{padding:16,marginBottom:10,borderLeft:"3px solid #f59e0b"}}>
+<div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:12}}>
+<div style={{width:36,height:36,borderRadius:10,background:typeColor(e.type,eventTypes),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:".7rem",fontWeight:800,flexShrink:0}}>
+{(e.type||"?").slice(0,2).toUpperCase()}
+</div>
+<div style={{flex:1,cursor:"pointer"}} onClick={()=>onSelect(e)}>
+<div style={{fontWeight:700,color:NAVY,fontSize:".95rem"}}>{e.title}</div>
+<div style={{fontSize:".76rem",color:"#6b7280",marginTop:2}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
+</div>
+</div>
+<div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+<button style={{padding:"7px 18px",fontSize:".82rem",border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>rejectEvent(e.id)}>Decline</button>
+<button style={{padding:"7px 18px",fontSize:".82rem",background:NAVY,color:"#fff",border:"none",borderRadius:20,fontWeight:700,cursor:"pointer"}} onClick={()=>approveEvent(e.id)}>Approve</button>
+</div>
+</div>
+))}
+</div>
+)}
+{/* Upcoming Events — Multi-select */}
+<div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+<div style={{display:"flex",alignItems:"center",gap:10}}>
+<div className="st" style={{margin:0}}>Upcoming Events</div>
+{selected.size > 0 && (
+<span style={{background:NAVY,color:"#fff",borderRadius:20,padding:"3px 12px",fontSize:".75rem",fontWeight:700}}>{selected.size} selected</span>
+)}
+</div>
+<div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+{selected.size > 0 ? (
+<>
+<button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#374151"}} onClick={()=>setSelected(new Set())}>Clear</button>
+<button style={{padding:"7px 14px",fontSize:".78rem",background:"#f0fdf4",border:"1.5px solid #86efac",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#065f46"}} onClick={bulkApprove}>Approve All</button>
+<button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff7ed",border:"1.5px solid #fdba74",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#92400e"}} onClick={()=>setEditEv({...upcoming.find(e=>selected.has(e.id)),_bulk:true})}>Edit Selected</button>
+<button style={{padding:"7px 14px",fontSize:".78rem",background:"#fef2f2",border:"1.5px solid #fca5a5",borderRadius:20,fontWeight:600,cursor:"pointer",color:"#991b1b"}} onClick={bulkCancel}>Cancel All</button>
+</>
+) : (
+<>
+<button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:NAVY}} onClick={()=>setShowPrint(true)}>Print</button>
+<button style={{padding:"7px 14px",fontSize:".78rem",background:"#fff",border:"1.5px solid #e5e7eb",borderRadius:20,fontWeight:600,cursor:"pointer",color:NAVY}} onClick={exportCSV}>Export CSV</button>
+</>
+)}
+</div>
+</div>
+{upcoming.length === 0 && (
+<div className="card" style={{padding:32,textAlign:"center",color:"#9ca3af"}}>
+<div style={{fontSize:"2rem",marginBottom:8}}>📅</div>
+No upcoming approved events.
+</div>
+)}
+{/* Select All bar */}
+{upcoming.length > 0 && (
+<div style={{display:"flex",alignItems:"center",gap:10,padding:"8px 14px",background:"#f8faff",borderRadius:10,marginBottom:8,border:"1.5px solid #e0e7ff"}}>
+<input type="checkbox"
+style={{width:16,height:16,accentColor:NAVY,cursor:"pointer"}}
+checked={selected.size === upcoming.length && upcoming.length > 0}
+onChange={e => setSelected(e.target.checked ? new Set(upcoming.map(ev=>ev.id)) : new Set())}
+/>
+<span style={{fontSize:".78rem",fontWeight:600,color:NAVY}}>Select all {upcoming.length} events</span>
+</div>
+)}
+{upcoming.map(e => {
+const isSel = selected.has(e.id);
+return (
+<div key={e.id} className="card" style={{padding:"12px 14px",marginBottom:6,display:"flex",gap:10,alignItems:"center",border:isSel?"1.5px solid "+NAVY:"1.5px solid #e5e7eb",background:isSel?"#f0f4ff":"#fff",transition:"all .15s"}}>
+<input type="checkbox"
+style={{width:16,height:16,accentColor:NAVY,cursor:"pointer",flexShrink:0}}
+checked={isSel}
+onChange={ev => { const s = new Set(selected); ev.target.checked ? s.add(e.id) : s.delete(e.id); setSelected(s); }}
+/>
+<div style={{width:36,height:36,borderRadius:10,background:typeColor(e.type,eventTypes),display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:".7rem",fontWeight:800,flexShrink:0}}>
+{(e.type||"?").slice(0,2).toUpperCase()}
+</div>
+<div style={{flex:1,minWidth:0,cursor:"pointer"}} onClick={()=>onSelect(e)}>
+<div style={{fontWeight:700,color:NAVY,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.title}</div>
+<div style={{fontSize:".74rem",color:"#6b7280",marginTop:1}}>{e.club} · {e.room} · {e.date} · {e.start_time}–{e.end_time}</div>
+</div>
+<div style={{display:"flex",gap:6,flexShrink:0}}>
+<button style={{padding:"5px 12px",fontSize:".78rem",background:"#f3f4f6",color:"#374151",border:"none",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>setEditEv({...e})}>Edit</button>
+<button style={{padding:"5px 12px",fontSize:".78rem",background:"#fee2e2",color:"#991b1b",border:"none",borderRadius:20,fontWeight:600,cursor:"pointer"}} onClick={()=>cancelEvent(e.id)}>Cancel</button>
+</div>
+</div>
+);
+})}
+</div>
+{/* Edit Event Modal */}
+{editEv && (
+<Overlay onClose={()=>setEditEv(null)} wide>
+<h3 style={{color:NAVY,fontWeight:800,marginBottom:4}}>{editEv._bulk ? "Bulk Edit " + selected.size + " Events" : "Edit Event"}</h3>
+{editEv._bulk && <p style={{fontSize:".8rem",color:"#6b7280",marginBottom:18}}>Only filled fields will be updated. Leave blank to keep existing values.</p>}
+<div className="fg">
+{!editEv._bulk && <div><label>Title</label><input value={editEv.title} onChange={e=>setEditEv(p=>({...p,title:e.target.value}))}/></div>}
+<div className="fr">
+<div><label>Room {editEv._bulk&&"(optional)"}</label>
+<select value={editEv.room||""} onChange={e=>setEditEv(p=>({...p,room:e.target.value}))}>
+<option value="">{editEv._bulk?"— Keep existing —":"Select room"}</option>
+{rooms.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}
+</select>
+</div>
+<div><label>Date {editEv._bulk&&"(optional)"}</label><input type="date" value={editEv.date||""} onChange={e=>setEditEv(p=>({...p,date:e.target.value}))}/></div>
+</div>
+<div className="fr">
+<div><label>Start Time {editEv._bulk&&"(optional)"}</label><input type="time" value={editEv.start_time||""} onChange={e=>setEditEv(p=>({...p,start_time:e.target.value}))}/></div>
+<div><label>End Time {editEv._bulk&&"(optional)"}</label><input type="time" value={editEv.end_time||""} onChange={e=>setEditEv(p=>({...p,end_time:e.target.value}))}/></div>
+</div>
+<div className="fr">
+<div><label>Attendance {editEv._bulk&&"(optional)"}</label><input type="number" value={editEv.attendance||""} onChange={e=>setEditEv(p=>({...p,attendance:e.target.value}))}/></div>
+<div><label>Status</label>
+<select value={editEv.status||"approved"} onChange={e=>setEditEv(p=>({...p,status:e.target.value}))}>
+<option value="approved">Approved</option>
+<option value="pending">Pending</option>
+<option value="cancelled">Cancelled</option>
+</select>
+</div>
+</div>
+{!editEv._bulk && <div><label>Notes</label><textarea value={editEv.notes||""} onChange={e=>setEditEv(p=>({...p,notes:e.target.value}))} rows={3}/></div>}
+</div>
+<div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+<button style={{padding:"9px 20px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,cursor:"pointer"}} onClick={()=>setEditEv(null)}>Cancel</button>
+<button style={{padding:"9px 20px",borderRadius:20,background:NAVY,color:"#fff",border:"none",fontWeight:700,cursor:"pointer"}} onClick={editEv._bulk ? bulkSave : saveEdit}>
+{editEv._bulk ? "Update " + selected.size + " Events" : "Save Changes"}
+</button>
+</div>
+</Overlay>
+)}
+</div>
+);
+}
+</script>
+<script type="text/babel">
 function Settings({rooms, eventTypes, clubUsers, addToast, onRefresh}) {
-  const [tab, setTab] = useState("rooms");
-  const [editRoom, setEditRoom] = useState(null);
-  const [editType, setEditType] = useState(null);
-  const [editUser, setEditUser] = useState(null);
-  const [confirmDel, setConfirmDel] = useState(null);
-
-  const saveRoom = async () => {
-    if (!editRoom.name) return addToast("Room name required","e");
-    const p = {name:editRoom.name, capacity:parseInt(editRoom.capacity)||0, spacing_days:parseInt(editRoom.spacing_days)||0};
-    if (editRoom.isNew) await sb.from("rooms").insert({id:crypto.randomUUID(),...p});
-    else await sb.from("rooms").update(p).eq("id",editRoom.id);
-    addToast("Room saved","s"); setEditRoom(null); onRefresh();
-  };
-  const deleteRoom = async id => { await sb.from("rooms").delete().eq("id",id); addToast("Room deleted","e"); setConfirmDel(null); onRefresh(); };
-  const saveType = async () => {
-    if (!editType.name) return addToast("Name required","e");
-    const p = {name:editType.name, color:editType.color||GOLD, spacing_days:parseInt(editType.spacing_days)||0, allow_time_overlap:editType.allow_time_overlap||false};
-    if (editType.isNew) await sb.from("event_types").insert(p);
-    else await sb.from("event_types").update(p).eq("id",editType.id);
-    addToast("Event type saved","s"); setEditType(null); onRefresh();
-  };
-  const deleteType = async id => { await sb.from("event_types").delete().eq("id",id); addToast("Deleted","e"); setConfirmDel(null); onRefresh(); };
-  const saveUser = async () => {
-    if (!editUser.club) return addToast("Club name required","e");
-    await sb.from("club_users").update({
-      club:editUser.club, name:editUser.name||editUser.club,
-      president:editUser.president||"", phone:editUser.phone||"", email:editUser.email||"",
-      account_status:editUser.account_status, is_admin:editUser.is_admin,
-      meeting_schedule:editUser.meeting_schedule||"", meeting_room:editUser.meeting_room||"",
-    }).eq("id",editUser.id);
-    addToast("Account updated","s"); setEditUser(null); onRefresh();
-  };
-  const deactivateUser = async id => { await sb.from("club_users").update({account_status:"inactive"}).eq("id",id); addToast("Deactivated","e"); setConfirmDel(null); onRefresh(); };
-
-  return (
-    <div className="fade">
-      <div className="st">Settings</div>
-      <div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
-        {[["rooms","Rooms"],["types","Event Types"],["accounts","Accounts"],["general","General"]].map(([k,l]) => (
-          <button key={k} onClick={()=>setTab(k)} style={{padding:"8px 18px",borderRadius:20,fontWeight:700,fontSize:".82rem",border:"none",cursor:"pointer",background:tab===k?NAVY:"#e5e7eb",color:tab===k?"#fff":NAVY}}>{l}</button>
-        ))}
-      </div>
-      {tab === "rooms" && (
-        <div>
-          <div className="card">
-            <div className="tw">
-              <table>
-                <thead><tr><th>Room</th><th>Capacity</th><th>Spacing</th><th>Actions</th></tr></thead>
-                <tbody>
-                  {rooms.map(r => (
-                    <tr key={r.id}>
-                      <td style={{fontWeight:700,color:NAVY}}>{r.name}</td>
-                      <td>{r.capacity ? r.capacity+" people" : "No limit"}</td>
-                      <td><span className="badge bb">{SPACING.find(o=>o.v===parseInt(r.spacing_days))?.l||"No restriction"}</span></td>
-                      <td>
-                        <div style={{display:"flex",gap:6}}>
-                          <button className="btn-g" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setEditRoom({...r,spacing_days:parseInt(r.spacing_days)||0})}>Edit</button>
-                          <button className="btn-d" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setConfirmDel({type:"room",id:r.id,name:r.name})}>Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <button className="btn-p" style={{marginTop:12}} onClick={()=>setEditRoom({isNew:true,name:"",capacity:0,spacing_days:0})}>+ Add Room</button>
-        </div>
-      )}
-      {tab === "types" && (
-        <div>
-          <div className="card">
-            <div className="tw">
-              <table>
-                <thead><tr><th>Event Type</th><th>Color</th><th>Same-Type Spacing</th><th>Can Overlap</th><th>Actions</th></tr></thead>
-                <tbody>
-                  {eventTypes.map(t => (
-                    <tr key={t.id}>
-                      <td style={{fontWeight:700,color:NAVY}}>{t.name}</td>
-                      <td><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:24,height:24,borderRadius:6,background:t.color||GOLD,border:"1px solid #e5e7eb"}}/>{t.color}</div></td>
-                      <td><span className="badge bp">{SPACING.find(o=>o.v===parseInt(t.spacing_days||0))?.l||"No restriction"}</span></td>
-                      <td><span className={"badge "+(t.allow_time_overlap?"bg":"br")}>{t.allow_time_overlap?"Yes (Committee)":"No (Club)"}</span></td>
-                      <td>
-                        <div style={{display:"flex",gap:6}}>
-                          <button className="btn-g" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setEditType({...t,spacing_days:parseInt(t.spacing_days)||0})}>Edit</button>
-                          <button className="btn-d" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setConfirmDel({type:"eventtype",id:t.id,name:t.name})}>Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <button className="btn-p" style={{marginTop:12}} onClick={()=>setEditType({isNew:true,name:"",color:GOLD,spacing_days:0})}>+ Add Event Type</button>
-        </div>
-      )}
-      {tab === "accounts" && (
-        <div className="card">
-          <div className="tw">
-            <table>
-              <thead><tr><th>Club / Account</th><th>Type</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
-              <tbody>
-                {clubUsers.sort((a,b)=>a.club>b.club?1:-1).map(u => (
-                  <tr key={u.id}>
-                    <td style={{fontWeight:700,color:NAVY}}>
-                      {u.club}
-                      {(u.role==="director"||u.is_admin) && <span style={{marginLeft:6,fontSize:".7rem",background:GOLD,color:"#fff",padding:"2px 7px",borderRadius:10,fontWeight:700}}>Admin</span>}
-                    </td>
-                    <td><span className="badge bp">{u.type||u.role}</span></td>
-                    <td style={{fontSize:".78rem",color:"#6b7280"}}>{u.email||"No email"}</td>
-                    <td><span className={"badge " + (u.account_status==="active"||!u.account_status?"bg":u.account_status==="pending"?"by":"br")}>{u.account_status||"active"}</span></td>
-                    <td>
-                      <div style={{display:"flex",gap:6}}>
-                        <button className="btn-g" style={{padding:"5px 10px",fontSize:".78rem"}} onClick={()=>setEditUser({...u})}>Edit</button>
-                        {u.account_status==="pending" && <button className="btn-p" style={{padding:"5px 10px",fontSize:".78rem"}} onClick={async()=>{await sb.from("club_users").update({account_status:"active"}).eq("id",u.id);addToast("Approved","s");onRefresh();}}>Approve</button>}
-                        {!u.is_admin && <button className="btn-d" style={{padding:"5px 10px",fontSize:".78rem"}} onClick={()=>setConfirmDel({type:"user",id:u.id,name:u.club})}>Deactivate</button>}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      {tab === "general" && (
-        <div className="fg">
-          <div className="card" style={{padding:20}}>
-            <div style={{fontWeight:700,color:NAVY,marginBottom:14}}>Community Info</div>
-            <div className="fg">
-              <div><label>Community Name</label><input defaultValue="Valencia Isles" placeholder="Your community name"/></div>
-              <div><label>Director Email</label><input defaultValue={DIR_EMAIL} placeholder="director@community.com"/></div>
-              <div style={{background:"#f0f4ff",borderRadius:8,padding:"12px 14px",fontSize:".8rem",color:NAVY}}>Contact support@myamenityos.com to update community-wide settings.</div>
-            </div>
-          </div>
-          <div className="card" style={{padding:20}}>
-            <div style={{fontWeight:700,color:NAVY,marginBottom:14}}>Approval Rules</div>
-            <div className="fg">
-              {[["Auto-approve conflict-free events",true],["Email director on new submission",true],["Email club when approved",true]].map(([label,checked]) => (
-                <label key={label} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",fontWeight:500,fontSize:".875rem",color:"#374151"}}>
-                  <input type="checkbox" defaultChecked={checked} style={{width:16,height:16,accentColor:NAVY}}/>{label}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-      {editRoom && (
-        <Overlay onClose={()=>setEditRoom(null)}>
-          <h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>{editRoom.isNew?"Add Room":"Edit Room"}</h3>
-          <div className="fg">
-            <div><label>Room Name *</label><input value={editRoom.name} onChange={e=>setEditRoom(p=>({...p,name:e.target.value}))}/></div>
-            <div><label>Maximum Capacity (0 = no limit)</label><input type="number" value={editRoom.capacity||0} onChange={e=>setEditRoom(p=>({...p,capacity:parseInt(e.target.value)||0}))}/></div>
-            <div><label>Spacing Between Events</label>
-              <select value={editRoom.spacing_days||0} onChange={e=>setEditRoom(p=>({...p,spacing_days:parseInt(e.target.value)}))}>
-                {SPACING.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
-              </select>
-            </div>
-          </div>
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
-            <button className="btn-g" onClick={()=>setEditRoom(null)}>Cancel</button>
-            <button className="btn-p" onClick={saveRoom}>Save Room</button>
-          </div>
-        </Overlay>
-      )}
-      {editType && (
-        <Overlay onClose={()=>setEditType(null)}>
-          <h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>{editType.isNew?"Add Event Type":"Edit Event Type"}</h3>
-          <div className="fg">
-            <div><label>Type Name *</label><input value={editType.name} onChange={e=>setEditType(p=>({...p,name:e.target.value}))}/></div>
-            <div><label>Color</label>
-              <div style={{display:"flex",alignItems:"center",gap:10}}>
-                <input type="color" value={editType.color||GOLD} onChange={e=>setEditType(p=>({...p,color:e.target.value}))} style={{width:48,height:40,padding:2,cursor:"pointer"}}/>
-                <span style={{fontSize:".8rem",color:"#6b7280"}}>{editType.color||GOLD}</span>
-              </div>
-            </div>
-            <div><label>Min Days Between Same-Type Events</label>
-              <select value={editType.spacing_days||0} onChange={e=>setEditType(p=>({...p,spacing_days:parseInt(e.target.value)}))}>
-                {SPACING.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
-              </select>
-            </div>
-            <label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",fontWeight:500,fontSize:".875rem",color:"#374151",background:"#f9fafb",border:"1.5px solid #e5e7eb",borderRadius:8,padding:"12px"}}>
-              <input type="checkbox" style={{width:16,height:16,margin:0,accentColor:NAVY}} checked={editType.allow_time_overlap||false} onChange={e=>setEditType(p=>({...p,allow_time_overlap:e.target.checked}))}/>
-              <div>
-                <div style={{fontWeight:600}}>Allow time overlaps with other events</div>
-                <div style={{fontSize:".76rem",color:"#6b7280",marginTop:2}}>ON = committee style (only blocked by same room). OFF = club style (blocked if any event at same time).</div>
-              </div>
-            </label>
-          </div>
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
-            <button className="btn-g" onClick={()=>setEditType(null)}>Cancel</button>
-            <button className="btn-p" onClick={saveType}>Save</button>
-          </div>
-        </Overlay>
-      )}
-      {editUser && (
-        <Overlay onClose={()=>setEditUser(null)} wide>
-          <h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>Edit Account - {editUser.club}</h3>
-          <div className="fg">
-            <div className="fr">
-              <div><label>Club Name *</label><input value={editUser.club||""} onChange={e=>setEditUser(p=>({...p,club:e.target.value}))}/></div>
-              <div><label>Contact Name</label><input value={editUser.president||""} onChange={e=>setEditUser(p=>({...p,president:e.target.value}))}/></div>
-            </div>
-            <div className="fr">
-              <div><label>Email</label><input type="email" value={editUser.email||""} onChange={e=>setEditUser(p=>({...p,email:e.target.value}))}/></div>
-              <div><label>Phone</label><input value={editUser.phone||""} onChange={e=>setEditUser(p=>({...p,phone:e.target.value}))}/></div>
-            </div>
-            <div className="fr">
-              <div><label>Meeting Schedule</label><input value={editUser.meeting_schedule||""} onChange={e=>setEditUser(p=>({...p,meeting_schedule:e.target.value}))} placeholder="e.g. 1st Tuesday, 10:00 AM"/></div>
-              <div><label>Meeting Room</label><input value={editUser.meeting_room||""} onChange={e=>setEditUser(p=>({...p,meeting_room:e.target.value}))}/></div>
-            </div>
-            <div className="fr">
-              <div><label>Account Status</label>
-                <select value={editUser.account_status||"active"} onChange={e=>setEditUser(p=>({...p,account_status:e.target.value}))}>
-                  <option value="active">Active</option>
-                  <option value="pending">Pending</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
-              <div><label>Admin Access</label>
-                <select value={editUser.is_admin?"true":"false"} onChange={e=>setEditUser(p=>({...p,is_admin:e.target.value==="true"}))}>
-                  <option value="false">No</option>
-                  <option value="true">Yes - Full Admin</option>
-                </select>
-              </div>
-            </div>
-          </div>
-          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
-            <button className="btn-g" onClick={()=>setEditUser(null)}>Cancel</button>
-            <button className="btn-p" onClick={saveUser}>Save Changes</button>
-          </div>
-        </Overlay>
-      )}
-      {confirmDel && (
-        <Overlay onClose={()=>setConfirmDel(null)}>
-          <div style={{textAlign:"center",padding:"8px 0"}}>
-            <div style={{fontSize:"2rem",marginBottom:12}}>Warning</div>
-            <h3 style={{color:"#991b1b",fontWeight:800,marginBottom:8}}>
-              {confirmDel.type==="user" ? "Deactivate Account?" : "Delete " + confirmDel.name + "?"}
-            </h3>
-            <p style={{fontSize:".875rem",color:"#6b7280",marginBottom:20}}>
-              {confirmDel.type==="user"
-                ? confirmDel.name + " will not be able to log in."
-                : "This permanently deletes " + confirmDel.name + " and cannot be undone."
-              }
-            </p>
-            <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-              <button className="btn-g" onClick={()=>setConfirmDel(null)}>Cancel</button>
-              <button className="btn-d" onClick={()=>{
-                if (confirmDel.type==="room") deleteRoom(confirmDel.id);
-                else if (confirmDel.type==="eventtype") deleteType(confirmDel.id);
-                else if (confirmDel.type==="user") deactivateUser(confirmDel.id);
-              }}>
-                {confirmDel.type==="user" ? "Deactivate" : "Delete"}
-              </button>
-            </div>
-          </div>
-        </Overlay>
-      )}
-    </div>
-  );
+const [tab, setTab] = useState("rooms");
+const [editRoom, setEditRoom] = useState(null);
+const [editType, setEditType] = useState(null);
+const [editUser, setEditUser] = useState(null);
+const [confirmDel, setConfirmDel] = useState(null);
+const saveRoom = async () => {
+if (!editRoom.name) return addToast("Room name required","e");
+const p = {name:editRoom.name, capacity:parseInt(editRoom.capacity)||0, spacing_days:parseInt(editRoom.spacing_days)||0};
+if (editRoom.isNew) await sb.from("rooms").insert({id:crypto.randomUUID(),...p});
+else await sb.from("rooms").update(p).eq("id",editRoom.id);
+addToast("Room saved","s"); setEditRoom(null); onRefresh();
+};
+const deleteRoom = async id => { await sb.from("rooms").delete().eq("id",id); addToast("Room deleted","e"); setConfirmDel(null); onRefresh(); };
+const saveType = async () => {
+if (!editType.name) return addToast("Name required","e");
+const p = {name:editType.name, color:editType.color||GOLD, spacing_days:parseInt(editType.spacing_days)||0, allow_time_overlap:editType.allow_time_overlap||false};
+if (editType.isNew) await sb.from("event_types").insert(p);
+else await sb.from("event_types").update(p).eq("id",editType.id);
+addToast("Event type saved","s"); setEditType(null); onRefresh();
+};
+const deleteType = async id => { await sb.from("event_types").delete().eq("id",id); addToast("Deleted","e"); setConfirmDel(null); onRefresh(); };
+const saveUser = async () => {
+if (!editUser.club) return addToast("Club name required","e");
+if (editUser.isNew) {
+const {error} = await sb.from("club_users").insert({
+id: crypto.randomUUID(),
+club: editUser.club, name: editUser.name||editUser.club,
+president: editUser.president||"", phone: editUser.phone||"", email: editUser.email||"",
+type: editUser.type||"club", role: "resident",
+account_status: "active", is_admin: false,
+meeting_schedule: editUser.meeting_schedule||"", meeting_room: editUser.meeting_room||"",
+username: (editUser.email||editUser.club).toLowerCase(), password: "",
+});
+if (error) return addToast("Error: "+error.message,"e");
+} else {
+await sb.from("club_users").update({
+club:editUser.club, name:editUser.name||editUser.club,
+president:editUser.president||"", phone:editUser.phone||"", email:editUser.email||"",
+account_status:editUser.account_status, is_admin:editUser.is_admin,
+meeting_schedule:editUser.meeting_schedule||"", meeting_room:editUser.meeting_room||"",
+}).eq("id",editUser.id);
 }
-
+addToast(editUser.isNew?"Club added":"Account updated","s"); setEditUser(null); onRefresh();
+};
+const deactivateUser = async id => { await sb.from("club_users").update({account_status:"inactive"}).eq("id",id); addToast("Deactivated","e"); setConfirmDel(null); onRefresh(); };
+return (
+<div className="fade">
+<div className="st">Settings</div>
+<div style={{display:"flex",gap:6,marginBottom:16,flexWrap:"wrap"}}>
+{[["rooms","Rooms"],["types","Event Types"],["accounts","Accounts"],["general","General"]].map(([k,l]) => (
+<button key={k} onClick={()=>setTab(k)} style={{padding:"8px 18px",borderRadius:20,fontWeight:700,fontSize:".82rem",border:"none",cursor:"pointer",background:tab===k?NAVY:"#e5e7eb",color:tab===k?"#fff":NAVY}}>{l}</button>
+))}
+</div>
+{tab === "rooms" && (
+<div>
+<div className="card">
+<div className="tw">
+<table>
+<thead><tr><th>Room</th><th>Capacity</th><th>Spacing</th><th>Actions</th></tr></thead>
+<tbody>
+{rooms.map(r => (
+<tr key={r.id}>
+<td style={{fontWeight:700,color:NAVY}}>{r.name}</td>
+<td>{r.capacity ? r.capacity+" people" : "No limit"}</td>
+<td><span className="badge bb">{SPACING.find(o=>o.v===parseInt(r.spacing_days))?.l||"No restriction"}</span></td>
+<td>
+<div style={{display:"flex",gap:6}}>
+<button className="btn-g" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setEditRoom({...r,spacing_days:parseInt(r.spacing_days)||0})}>Edit</button>
+<button className="btn-d" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setConfirmDel({type:"room",id:r.id,name:r.name})}>Delete</button>
+</div>
+</td>
+</tr>
+))}
+</tbody>
+</table>
+</div>
+</div>
+<button className="btn-p" style={{marginTop:12}} onClick={()=>setEditRoom({isNew:true,name:"",capacity:0,spacing_days:0})}>+ Add Room</button>
+</div>
+)}
+{tab === "types" && (
+<div>
+<div className="card">
+<div className="tw">
+<table>
+<thead><tr><th>Event Type</th><th>Color</th><th>Same-Type Spacing</th><th>Can Overlap</th><th>Actions</th></tr></thead>
+<tbody>
+{eventTypes.map(t => (
+<tr key={t.id}>
+<td style={{fontWeight:700,color:NAVY}}>{t.name}</td>
+<td><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:24,height:24,borderRadius:6,background:t.color||GOLD,border:"1px solid #e5e7eb"}}/>{t.color}</div></td>
+<td><span className="badge bp">{SPACING.find(o=>o.v===parseInt(t.spacing_days||0))?.l||"No restriction"}</span></td>
+<td><span className={"badge "+(t.allow_time_overlap?"bg":"br")}>{t.allow_time_overlap?"Yes (Committee)":"No (Club)"}</span></td>
+<td>
+<div style={{display:"flex",gap:6}}>
+<button className="btn-g" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setEditType({...t,spacing_days:parseInt(t.spacing_days)||0})}>Edit</button>
+<button className="btn-d" style={{padding:"5px 12px",fontSize:".78rem"}} onClick={()=>setConfirmDel({type:"eventtype",id:t.id,name:t.name})}>Delete</button>
+</div>
+</td>
+</tr>
+))}
+</tbody>
+</table>
+</div>
+</div>
+<button className="btn-p" style={{marginTop:12}} onClick={()=>setEditType({isNew:true,name:"",color:GOLD,spacing_days:0})}>+ Add Event Type</button>
+</div>
+)}
+{tab === "accounts" && (
+<div>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+<div style={{fontSize:".85rem",color:"#6b7280"}}>{clubUsers.length} accounts total</div>
+<div style={{display:"flex",gap:8}}>
+<button style={{padding:"7px 16px",borderRadius:20,border:"none",background:"#ede9fe",color:"#5b21b6",fontWeight:700,fontSize:".8rem",cursor:"pointer"}} onClick={()=>setEditUser({isNew:true,club:"",name:"",type:"committee",president:"",phone:"",email:"",meeting_schedule:"",meeting_room:"",account_status:"active",is_admin:false})}>+ Add Committee</button>
+<button style={{padding:"7px 16px",borderRadius:20,border:"none",background:NAVY,color:"#fff",fontWeight:700,fontSize:".8rem",cursor:"pointer"}} onClick={()=>setEditUser({isNew:true,club:"",name:"",type:"club",president:"",phone:"",email:"",meeting_schedule:"",meeting_room:"",account_status:"active",is_admin:false})}>+ Add Club</button>
+</div>
+</div>
+<div className="card">
+<div className="tw">
+<table>
+<thead><tr><th>Club / Account</th><th>Type</th><th>Contact</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+<tbody>
+{clubUsers.sort((a,b)=>a.club>b.club?1:-1).map(u => (
+<tr key={u.id}>
+<td style={{fontWeight:700,color:NAVY}}>
+{u.club}
+{(u.role==="director"||u.is_admin) && <span style={{marginLeft:6,fontSize:".68rem",background:GOLD,color:"#fff",padding:"2px 7px",borderRadius:10,fontWeight:700}}>Admin</span>}
+</td>
+<td><span className={"badge "+(u.type==="committee"?"bp":"bb")}>{u.type||u.role}</span></td>
+<td style={{fontSize:".78rem",color:"#6b7280"}}>{u.president||"—"}</td>
+<td style={{fontSize:".78rem",color:"#6b7280"}}>{u.email||"—"}</td>
+<td><span className={"badge "+(u.account_status==="active"||!u.account_status?"bg":u.account_status==="pending"?"by":"br")}>{u.account_status||"active"}</span></td>
+<td>
+<div style={{display:"flex",gap:6}}>
+<button style={{padding:"4px 10px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={()=>setEditUser({...u})}>Edit</button>
+{u.account_status==="pending" && <button style={{padding:"4px 10px",borderRadius:20,border:"none",background:"#d1fae5",color:"#065f46",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={async()=>{await sb.from("club_users").update({account_status:"active"}).eq("id",u.id);addToast("Approved","s");onRefresh();}}>Approve</button>}
+{!u.is_admin && <button style={{padding:"4px 10px",borderRadius:20,border:"none",background:"#fee2e2",color:"#991b1b",fontWeight:600,fontSize:".75rem",cursor:"pointer"}} onClick={()=>setConfirmDel({type:"user",id:u.id,name:u.club})}>Remove</button>}
+</div>
+</td>
+</tr>
+))}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+)}
+{tab === "general" && (
+<div className="fg">
+<div className="card" style={{padding:20}}>
+<div style={{fontWeight:700,color:NAVY,marginBottom:14}}>Community Info</div>
+<div className="fg">
+<div><label>Community Name</label><input defaultValue="Valencia Isles" placeholder="Your community name"/></div>
+<div><label>Director Email</label><input defaultValue={DIR_EMAIL} placeholder="director@community.com"/></div>
+<div style={{background:"#f0f4ff",borderRadius:8,padding:"12px 14px",fontSize:".8rem",color:NAVY}}>Contact support@myamenityos.com to update community-wide settings.</div>
+</div>
+</div>
+<div className="card" style={{padding:20}}>
+<div style={{fontWeight:700,color:NAVY,marginBottom:14}}>Approval Rules</div>
+<div className="fg">
+{[["Auto-approve conflict-free events",true],["Email director on new submission",true],["Email club when approved",true]].map(([label,checked]) => (
+<label key={label} style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",fontWeight:500,fontSize:".875rem",color:"#374151"}}>
+<input type="checkbox" defaultChecked={checked} style={{width:16,height:16,accentColor:NAVY}}/>{label}
+</label>
+))}
+</div>
+</div>
+</div>
+)}
+{editRoom && (
+<Overlay onClose={()=>setEditRoom(null)}>
+<h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>{editRoom.isNew?"Add Room":"Edit Room"}</h3>
+<div className="fg">
+<div><label>Room Name *</label><input value={editRoom.name} onChange={e=>setEditRoom(p=>({...p,name:e.target.value}))}/></div>
+<div><label>Maximum Capacity (0 = no limit)</label><input type="number" value={editRoom.capacity||0} onChange={e=>setEditRoom(p=>({...p,capacity:parseInt(e.target.value)||0}))}/></div>
+<div><label>Spacing Between Events</label>
+<select value={editRoom.spacing_days||0} onChange={e=>setEditRoom(p=>({...p,spacing_days:parseInt(e.target.value)}))}>
+{SPACING.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+</select>
+</div>
+</div>
+<div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+<button className="btn-g" onClick={()=>setEditRoom(null)}>Cancel</button>
+<button className="btn-p" onClick={saveRoom}>Save Room</button>
+</div>
+</Overlay>
+)}
+{editType && (
+<Overlay onClose={()=>setEditType(null)}>
+<h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>{editType.isNew?"Add Event Type":"Edit Event Type"}</h3>
+<div className="fg">
+<div><label>Type Name *</label><input value={editType.name} onChange={e=>setEditType(p=>({...p,name:e.target.value}))}/></div>
+<div><label>Color</label>
+<div style={{display:"flex",alignItems:"center",gap:10}}>
+<input type="color" value={editType.color||GOLD} onChange={e=>setEditType(p=>({...p,color:e.target.value}))} style={{width:48,height:40,padding:2,cursor:"pointer"}}/>
+<span style={{fontSize:".8rem",color:"#6b7280"}}>{editType.color||GOLD}</span>
+</div>
+</div>
+<div><label>Min Days Between Same-Type Events</label>
+<select value={editType.spacing_days||0} onChange={e=>setEditType(p=>({...p,spacing_days:parseInt(e.target.value)}))}>
+{SPACING.map(o => <option key={o.v} value={o.v}>{o.l}</option>)}
+</select>
+</div>
+<label style={{display:"flex",alignItems:"center",gap:10,cursor:"pointer",fontWeight:500,fontSize:".875rem",color:"#374151",background:"#f9fafb",border:"1.5px solid #e5e7eb",borderRadius:8,padding:"12px"}}>
+<input type="checkbox" style={{width:16,height:16,margin:0,accentColor:NAVY}} checked={editType.allow_time_overlap||false} onChange={e=>setEditType(p=>({...p,allow_time_overlap:e.target.checked}))}/>
+<div>
+<div style={{fontWeight:600}}>Allow time overlaps with other events</div>
+<div style={{fontSize:".76rem",color:"#6b7280",marginTop:2}}>ON = committee style (only blocked by same room). OFF = club style (blocked if any event at same time).</div>
+</div>
+</label>
+</div>
+<div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+<button className="btn-g" onClick={()=>setEditType(null)}>Cancel</button>
+<button className="btn-p" onClick={saveType}>Save</button>
+</div>
+</Overlay>
+)}
+{editUser && (
+<Overlay onClose={()=>setEditUser(null)} wide>
+<h3 style={{color:NAVY,fontWeight:800,marginBottom:18}}>{editUser.isNew?(editUser.type==="committee"?"Add Committee":"Add Club"):"Edit — "+editUser.club}</h3>
+<div className="fg">
+<div className="fr">
+<div><label>Club / Committee Name *</label><input value={editUser.club||""} onChange={e=>setEditUser(p=>({...p,club:e.target.value}))}/></div>
+<div><label>Type</label>
+<select value={editUser.type||"club"} onChange={e=>setEditUser(p=>({...p,type:e.target.value}))}>
+<option value="club">Club</option>
+<option value="committee">Committee</option>
+<option value="management">Management</option>
+<option value="staff">Staff</option>
+</select>
+</div>
+</div>
+<div className="fr">
+<div><label>President / Contact Name</label><input value={editUser.president||""} onChange={e=>setEditUser(p=>({...p,president:e.target.value}))}/></div>
+<div><label>Phone</label><input value={editUser.phone||""} onChange={e=>setEditUser(p=>({...p,phone:e.target.value}))}/></div>
+</div>
+<div><label>Email</label><input type="email" value={editUser.email||""} onChange={e=>setEditUser(p=>({...p,email:e.target.value}))}/></div>
+<div className="fr">
+<div><label>Meeting Schedule</label><input value={editUser.meeting_schedule||""} onChange={e=>setEditUser(p=>({...p,meeting_schedule:e.target.value}))} placeholder="e.g. 1st Tuesday, 10:00 AM"/></div>
+<div><label>Meeting Room</label><input value={editUser.meeting_room||""} onChange={e=>setEditUser(p=>({...p,meeting_room:e.target.value}))}/></div>
+</div>
+{!editUser.isNew && (
+<div className="fr">
+<div><label>Account Status</label>
+<select value={editUser.account_status||"active"} onChange={e=>setEditUser(p=>({...p,account_status:e.target.value}))}>
+<option value="active">Active</option>
+<option value="pending">Pending</option>
+<option value="inactive">Inactive</option>
+</select>
+</div>
+<div><label>Admin Access</label>
+<select value={editUser.is_admin?"true":"false"} onChange={e=>setEditUser(p=>({...p,is_admin:e.target.value==="true"}))}>
+<option value="false">No</option>
+<option value="true">Yes - Full Admin</option>
+</select>
+</div>
+</div>
+)}
+</div>
+<div style={{display:"flex",gap:8,justifyContent:"flex-end",marginTop:18}}>
+<button style={{padding:"9px 20px",borderRadius:20,border:"1.5px solid #e5e7eb",background:"#fff",color:"#374151",fontWeight:600,cursor:"pointer"}} onClick={()=>setEditUser(null)}>Cancel</button>
+<button style={{padding:"9px 20px",borderRadius:20,background:NAVY,color:"#fff",border:"none",fontWeight:700,cursor:"pointer"}} onClick={saveUser}>
+{editUser.isNew?"Add "+editUser.type:"Save Changes"}
+</button>
+</div>
+</Overlay>
+)}
+{confirmDel && (
+<Overlay onClose={()=>setConfirmDel(null)}>
+<div style={{textAlign:"center",padding:"8px 0"}}>
+<div style={{fontSize:"2rem",marginBottom:12}}>Warning</div>
+<h3 style={{color:"#991b1b",fontWeight:800,marginBottom:8}}>
+{confirmDel.type==="user" ? "Deactivate Account?" : "Delete " + confirmDel.name + "?"}
+</h3>
+<p style={{fontSize:".875rem",color:"#6b7280",marginBottom:20}}>
+{confirmDel.type==="user"
+? confirmDel.name + " will not be able to log in."
+: "This permanently deletes " + confirmDel.name + " and cannot be undone."
+}
+</p>
+<div style={{display:"flex",gap:8,justifyContent:"center"}}>
+<button className="btn-g" onClick={()=>setConfirmDel(null)}>Cancel</button>
+<button className="btn-d" onClick={()=>{
+if (confirmDel.type==="room") deleteRoom(confirmDel.id);
+else if (confirmDel.type==="eventtype") deleteType(confirmDel.id);
+else if (confirmDel.type==="user") deactivateUser(confirmDel.id);
+}}>
+{confirmDel.type==="user" ? "Deactivate" : "Delete"}
+</button>
+</div>
+</div>
+</Overlay>
+)}
+</div>
+);
+}
 function EventModal({ev, isAdmin, onClose, onApprove, onCancel, eventTypes}) {
-  if (!ev) return null;
-  const color = typeColor(ev.type, eventTypes);
-  const addGCal = () => {
-    const fmt = d => d.replace(/-/g,"");
-    const s = fmt(ev.date)+"T"+(ev.start_time||"00:00").replace(":","")+"00";
-    const e2 = fmt(ev.date)+"T"+(ev.end_time||"00:00").replace(":","")+"00";
-    window.open("https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(ev.title)+"&dates="+s+"/"+e2+"&details="+encodeURIComponent(ev.notes||"")+"&location="+encodeURIComponent(ev.room||""), "_blank");
-  };
-  return (
-    <Overlay onClose={onClose}>
-      <div style={{borderTop:"4px solid "+color,paddingTop:16}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
-          <div>
-            <div style={{fontWeight:800,fontSize:"1.15rem",color:NAVY}}>{ev.title}</div>
-            <div style={{fontSize:".8rem",color:"#6b7280",marginTop:3}}>{ev.club}</div>
-          </div>
-          <span className={"badge " + (ev.status==="approved"?"bg":ev.status==="pending"?"by":"br")}>{ev.status}</span>
-        </div>
-        <div style={{display:"grid",gap:9,fontSize:".875rem",marginBottom:18}}>
-          {[["Location", ev.is_off_site?"Off-Site: "+(ev.off_site_address||""):ev.room],["Date",ev.date],["Time",ev.start_time+" - "+ev.end_time],["Type",ev.type||"N/A"],["Attendance",ev.attendance||"N/A"],["Notes",ev.notes||"None"]].map(([label,val]) => (
-            <div key={label} style={{display:"flex",gap:8}}>
-              <span style={{color:"#6b7280",minWidth:80,flexShrink:0}}>{label}:</span>
-              <span style={{fontWeight:600,color:NAVY,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{val}</span>
-            </div>
-          ))}
-        </div>
-        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          {ev.status==="approved" && <button className="btn-g" style={{fontSize:".82rem"}} onClick={addGCal}>Add to Google Calendar</button>}
-          {isAdmin && ev.status==="pending" && (
-            <div style={{display:"flex",gap:8}}>
-              <button className="btn-d" onClick={()=>{onCancel(ev.id);onClose();}}>Reject</button>
-              <button className="btn-p" onClick={()=>{onApprove(ev.id);onClose();}}>Approve</button>
-            </div>
-          )}
-          {isAdmin && ev.status==="approved" && <button className="btn-d" onClick={()=>{onCancel(ev.id);onClose();}}>Cancel Event</button>}
-          <button className="btn-g" style={{marginLeft:"auto"}} onClick={onClose}>Close</button>
-        </div>
-      </div>
-    </Overlay>
-  );
+if (!ev) return null;
+const color = typeColor(ev.type, eventTypes);
+const addGCal = () => {
+const fmt = d => d.replace(/-/g,"");
+const s = fmt(ev.date)+"T"+(ev.start_time||"00:00").replace(":","")+"00";
+const e2 = fmt(ev.date)+"T"+(ev.end_time||"00:00").replace(":","")+"00";
+window.open("https://calendar.google.com/calendar/render?action=TEMPLATE&text="+encodeURIComponent(ev.title)+"&dates="+s+"/"+e2+"&details="+encodeURIComponent(ev.notes||"")+"&location="+encodeURIComponent(ev.room||""), "_blank");
+};
+return (
+<Overlay onClose={onClose}>
+<div style={{borderTop:"4px solid "+color,paddingTop:16}}>
+<div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+<div>
+<div style={{fontWeight:800,fontSize:"1.15rem",color:NAVY}}>{ev.title}</div>
+<div style={{fontSize:".8rem",color:"#6b7280",marginTop:3}}>{ev.club}</div>
+</div>
+<span className={"badge " + (ev.status==="approved"?"bg":ev.status==="pending"?"by":"br")}>{ev.status}</span>
+</div>
+<div style={{display:"grid",gap:9,fontSize:".875rem",marginBottom:18}}>
+{[["Location", ev.is_off_site?"Off-Site: "+(ev.off_site_address||""):ev.room],["Date",ev.date],["Time",ev.start_time+" - "+ev.end_time],["Type",ev.type||"N/A"],["Attendance",ev.attendance||"N/A"],["Notes",ev.notes||"None"]].map(([label,val]) => (
+<div key={label} style={{display:"flex",gap:8}}>
+<span style={{color:"#6b7280",minWidth:80,flexShrink:0}}>{label}:</span>
+<span style={{fontWeight:600,color:NAVY,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{val}</span>
+</div>
+))}
+</div>
+<div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+{ev.status==="approved" && <button className="btn-g" style={{fontSize:".82rem"}} onClick={addGCal}>Add to Google Calendar</button>}
+{isAdmin && ev.status==="pending" && (
+<div style={{display:"flex",gap:8}}>
+<button className="btn-d" onClick={()=>{onCancel(ev.id);onClose();}}>Reject</button>
+<button className="btn-p" onClick={()=>{onApprove(ev.id);onClose();}}>Approve</button>
+</div>
+)}
+{isAdmin && ev.status==="approved" && <button className="btn-d" onClick={()=>{onCancel(ev.id);onClose();}}>Cancel Event</button>}
+<button className="btn-g" style={{marginLeft:"auto"}} onClick={onClose}>Close</button>
+</div>
+</div>
+</Overlay>
+);
 }
-
 function Loading() {
-  return (
-    <div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0d1b35,#1B3461)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
-      <Logo size={58}/>
-      <div style={{color:"#fff",fontWeight:800,fontSize:"1.1rem"}}>AmenityOS</div>
-      <div style={{width:34,height:34,border:"3px solid rgba(255,255,255,.2)",borderTopColor:GOLD,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
-    </div>
-  );
+return (
+<div style={{minHeight:"100vh",background:"linear-gradient(135deg,#0d1b35,#1B3461)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
+<Logo size={58}/>
+<div style={{color:"#fff",fontWeight:800,fontSize:"1.1rem"}}>AmenityOS</div>
+<div style={{width:34,height:34,border:"3px solid rgba(255,255,255,.2)",borderTopColor:GOLD,borderRadius:"50%",animation:"spin .8s linear infinite"}}/>
+</div>
+);
 }
-
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [nav, setNav] = useState("calendar");
-  const [sel, setSel] = useState(null);
-  const {ts, add: addToast} = useToasts();
-  const [events, setEvents] = useState([]);
-  const [rooms, setRooms] = useState([]);
-  const [eventTypes, setEventTypes] = useState([]);
-  const [clubUsers, setClubUsers] = useState([]);
-
-  const loadData = useCallback(async () => {
-    const [ev, rm, ty, cu] = await Promise.all([
-      sb.from("events").select("*").order("date"),
-      sb.from("rooms").select("*").order("name"),
-      sb.from("event_types").select("*").order("name"),
-      sb.from("club_users").select("*").order("club"),
-    ]);
-    if (ev.data) setEvents(ev.data);
-    if (rm.data) setRooms(rm.data);
-    if (ty.data) setEventTypes(ty.data);
-    if (cu.data) setClubUsers(cu.data);
-  }, []);
-
-  useEffect(() => {
-    (async () => {
-      const {data:{session}} = await sb.auth.getSession();
-      if (session?.user?.email) {
-        const {data:profile} = await sb.from("club_users").select("*").eq("email", session.user.email.toLowerCase()).single();
-        if (profile && (profile.account_status==="active"||!profile.account_status)) {
-          setUser({...profile, session}); await loadData();
-        }
-      }
-      setLoading(false);
-    })();
-    const {data:{subscription}} = sb.auth.onAuthStateChange(event => {
-      if (event === "SIGNED_OUT") { setUser(null); setNav("calendar"); }
-    });
-    return () => subscription.unsubscribe();
-  }, [loadData]);
-
-  const onAuth = async u => { setUser(u); await loadData(); setNav("calendar"); };
-  const onLogout = async () => { await sb.auth.signOut(); setUser(null); };
-  const onRefresh = useCallback(async () => { await loadData(); }, [loadData]);
-  const approveEvent = async id => {
-    const ev = events.find(e => e.id === id);
-    await sb.from("events").update({status:"approved"}).eq("id",id);
-    addToast("Approved","s");
-    if (ev) { const club = clubUsers.find(u => u.club===ev.club); sendEmail(EJTPL_APR,{to_email:club?.email||"",club_name:ev.club,event_title:ev.title,event_date:ev.date,event_time:ev.start_time+"-"+ev.end_time,event_room:ev.room}); }
-    onRefresh();
-  };
-  const cancelEvent = async id => { await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Cancelled","e"); onRefresh(); };
-
-  if (loading) return <Loading/>;
-  if (!user) return <AuthScreen onAuth={onAuth}/>;
-  const isAdmin = user.role === "director" || user.is_admin === true;
-
-  return (
-    <div style={{minHeight:"100vh",background:"#EDF2F9"}}>
-      <Toasts ts={ts}/>
-      <Nav nav={nav} setNav={setNav} user={user} onLogout={onLogout}/>
-      <div className="content">
-        {nav==="calendar"   && <CalendarView events={events} eventTypes={eventTypes} onSelect={setSel}/>}
-        {nav==="submit"     && <SubmitEvent user={user} events={events} rooms={rooms} eventTypes={eventTypes} addToast={addToast} onRefresh={onRefresh}/>}
-        {nav==="myevents"   && !isAdmin && <MyEvents user={user} events={events} eventTypes={eventTypes} onSelect={setSel}/>}
-        {nav==="directory"  && <ClubDirectory clubUsers={clubUsers}/>}
-        {nav==="dashboard"  && isAdmin && <Dashboard events={events} eventTypes={eventTypes} rooms={rooms} clubUsers={clubUsers} onSelect={setSel} addToast={addToast} onRefresh={onRefresh}/>}
-        {nav==="settings"   && isAdmin && <Settings rooms={rooms} eventTypes={eventTypes} clubUsers={clubUsers} addToast={addToast} onRefresh={onRefresh}/>}
-      </div>
-      <EventModal ev={sel} isAdmin={isAdmin} onClose={()=>setSel(null)} onApprove={approveEvent} onCancel={cancelEvent} eventTypes={eventTypes}/>
-    </div>
-  );
+const [user, setUser] = useState(null);
+const [loading, setLoading] = useState(true);
+const [nav, setNav] = useState("calendar");
+const [sel, setSel] = useState(null);
+const {ts, add: addToast} = useToasts();
+const [events, setEvents] = useState([]);
+const [rooms, setRooms] = useState([]);
+const [eventTypes, setEventTypes] = useState([]);
+const [clubUsers, setClubUsers] = useState([]);
+const loadData = useCallback(async () => {
+const [ev, rm, ty, cu] = await Promise.all([
+sb.from("events").select("*").order("date"),
+sb.from("rooms").select("*").order("name"),
+sb.from("event_types").select("*").order("name"),
+sb.from("club_users").select("*").order("club"),
+]);
+if (ev.data) setEvents(ev.data);
+if (rm.data) setRooms(rm.data);
+if (ty.data) setEventTypes(ty.data);
+if (cu.data) setClubUsers(cu.data);
+}, []);
+useEffect(() => {
+(async () => {
+const {data:{session}} = await sb.auth.getSession();
+if (session?.user?.email) {
+const {data:profile} = await sb.from("club_users").select("*").eq("email", session.user.email.toLowerCase()).single();
+if (profile && (profile.account_status==="active"||!profile.account_status)) {
+setUser({...profile, session}); await loadData();
 }
-
+}
+setLoading(false);
+})();
+const {data:{subscription}} = sb.auth.onAuthStateChange(event => {
+if (event === "SIGNED_OUT") { setUser(null); setNav("calendar"); }
+});
+return () => subscription.unsubscribe();
+}, [loadData]);
+const onAuth = async u => { setUser(u); await loadData(); setNav("calendar"); };
+const onLogout = async () => { await sb.auth.signOut(); setUser(null); };
+const onRefresh = useCallback(async () => { await loadData(); }, [loadData]);
+const approveEvent = async id => {
+const ev = events.find(e => e.id === id);
+await sb.from("events").update({status:"approved"}).eq("id",id);
+addToast("Approved","s");
+if (ev) { const club = clubUsers.find(u => u.club===ev.club); sendEmail(EJTPL_APR,{to_email:club?.email||"",club_name:ev.club,event_title:ev.title,event_date:ev.date,event_time:ev.start_time+"-"+ev.end_time,event_room:ev.room}); }
+onRefresh();
+};
+const cancelEvent = async id => { await sb.from("events").update({status:"cancelled"}).eq("id",id); addToast("Cancelled","e"); onRefresh(); };
+if (loading) return <Loading/>;
+if (!user) return <AuthScreen onAuth={onAuth}/>;
+const isAdmin = user.role === "director" || user.is_admin === true;
+return (
+<div style={{minHeight:"100vh",background:"#EDF2F9"}}>
+<Toasts ts={ts}/>
+<Nav nav={nav} setNav={setNav} user={user} onLogout={onLogout}/>
+<div className="content">
+{nav==="calendar"   && <CalendarView events={events} eventTypes={eventTypes} onSelect={setSel}/>}
+{nav==="submit"     && <SubmitEvent user={user} events={events} rooms={rooms} eventTypes={eventTypes} addToast={addToast} onRefresh={onRefresh}/>}
+{nav==="myevents"   && !isAdmin && <MyEvents user={user} events={events} eventTypes={eventTypes} onSelect={setSel}/>}
+{nav==="directory"  && <ClubDirectory clubUsers={clubUsers}/>}
+{nav==="dashboard"  && isAdmin && <Dashboard events={events} eventTypes={eventTypes} rooms={rooms} clubUsers={clubUsers} onSelect={setSel} addToast={addToast} onRefresh={onRefresh}/>}
+{nav==="settings"   && isAdmin && <Settings rooms={rooms} eventTypes={eventTypes} clubUsers={clubUsers} addToast={addToast} onRefresh={onRefresh}/>}
+</div>
+<EventModal ev={sel} isAdmin={isAdmin} onClose={()=>setSel(null)} onApprove={approveEvent} onCancel={cancelEvent} eventTypes={eventTypes}/>
+</div>
+);
+}
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
+
+
 </body>
 </html>
