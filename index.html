@@ -73,6 +73,15 @@ const DIR_EMAIL="lifestyle@valenciaisleshoa.com";
 
 function fmt12(t){if(!t)return"";const[h,m]=t.split(":");const hh=parseInt(h);return(hh%12||12)+":"+(m||"00")+" "+(hh<12?"AM":"PM");}
 
+function useSort(defaultKey, defaultDir=1){
+  const[sortKey,setSortKey]=useState(defaultKey);
+  const[sortDir,setSortDir]=useState(defaultDir);
+  const toggle=key=>{if(sortKey===key)setSortDir(d=>-d);else{setSortKey(key);setSortDir(1);}};
+  const sort=arr=>[...arr].sort((a,b)=>{const av=a[sortKey]||"",bv=b[sortKey]||"";return typeof av==="number"?(av-bv)*sortDir:String(av).localeCompare(String(bv))*sortDir;});
+  const Th=({k,l,style={}})=><th style={{cursor:"pointer",userSelect:"none",whiteSpace:"nowrap",...style}} onClick={()=>toggle(k)}>{l}{sortKey===k?<span style={{marginLeft:4,opacity:.7}}>{sortDir===1?"↑":"↓"}</span>:<span style={{marginLeft:4,opacity:.2}}>↕</span>}</th>;
+  return{sort,Th,sortKey,sortDir};
+}
+
 function useToasts(){
   const[ts,setTs]=useState([]);
   const add=useCallback((msg,type="i")=>{const id=Date.now();setTs(p=>[...p,{id,msg,type}]);setTimeout(()=>setTs(p=>p.filter(t=>t.id!==id)),4000);},[]);
@@ -297,6 +306,8 @@ function CalendarView({events,eventTypes,onSelect}){
   const approved=useMemo(()=>events.filter(e=>e.status==="approved"),[events]);
   const byDay=useMemo(()=>{const m={};approved.forEach(e=>{const d=new Date(e.date+"T00:00:00");if(d.getFullYear()===year&&d.getMonth()===month){const k=d.getDate();if(!m[k])m[k]=[];m[k].push(e);}});return m;},[approved,year,month]);
   const upcoming=approved.filter(e=>new Date(e.date+"T23:59:59")>=today).sort((a,b)=>a.date>b.date?1:-1);
+  const{sort:sortUp,Th:ThUp}=useSort("date");
+  const sortedUpcoming=sortUp(upcoming);
   const pM=()=>month===0?(setMonth(11),setYear(y=>y-1)):setMonth(m=>m-1);
   const nM=()=>month===11?(setMonth(0),setYear(y=>y+1)):setMonth(m=>m+1);
   return(
@@ -324,8 +335,18 @@ function CalendarView({events,eventTypes,onSelect}){
         </div>
       </div>
       <div className="st">Upcoming Events</div>
-      {upcoming.length===0&&<div className="card" style={{padding:24,textAlign:"center",color:"#9ca3af"}}>No upcoming events scheduled.</div>}
-      {upcoming.slice(0,10).map(e=>(
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+        <div className="st" style={{margin:0}}>Upcoming Events</div>
+        <div style={{display:"flex",gap:6}}>
+          {[["date","Date"],["title","Title"],["club","Club"],["room","Room"]].map(([k,l])=>(
+            <button key={k} onClick={()=>ThUp({k}).props.onClick()} style={{padding:"4px 10px",borderRadius:20,fontSize:".72rem",fontWeight:600,border:"none",cursor:"pointer",background:"#f3f4f6",color:"#374151"}}>
+              {l}
+            </button>
+          ))}
+        </div>
+      </div>
+      {sortedUpcoming.length===0&&<div className="card" style={{padding:24,textAlign:"center",color:"#9ca3af"}}>No upcoming events scheduled.</div>}
+      {sortedUpcoming.slice(0,10).map(e=>(
         <div key={e.id} className="card" style={{padding:12,marginBottom:8,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
           <div style={{width:4,alignSelf:"stretch",borderRadius:4,background:tColor(e.type,eventTypes),flexShrink:0}}/>
           <div style={{flex:1,minWidth:0}}>
@@ -491,11 +512,19 @@ function SubmitEvent({user,events,rooms,eventTypes,addToast,onRefresh}){
 }
 
 function MyEvents({user,events,eventTypes,onSelect}){
-  const mine=events.filter(e=>e.club===user.club).sort((a,b)=>b.date>a.date?1:-1);
+  const{sort:sortMine,Th:ThMine}=useSort("date",-1);
+  const mine=sortMine(events.filter(e=>e.club===user.club));
   const sb2=s=>s==="approved"?<span className="pill pg">Approved</span>:s==="pending"?<span className="pill py">Pending</span>:<span className="pill pr">Cancelled</span>;
   return(
     <div className="fade">
-      <div className="st">My Events ({mine.length})</div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div className="st" style={{margin:0}}>My Events ({mine.length})</div>
+        <div style={{display:"flex",gap:5}}>
+          {[["date","Date"],["title","Title"],["status","Status"],["room","Room"]].map(([k,l])=>(
+            <button key={k} onClick={()=>ThMine({k}).props.onClick()} style={{padding:"4px 10px",borderRadius:20,fontSize:".72rem",fontWeight:600,border:"none",cursor:"pointer",background:"#f3f4f6",color:"#374151"}}>{l}</button>
+          ))}
+        </div>
+      </div>
       {mine.length===0&&<div className="card" style={{padding:28,textAlign:"center",color:"#9ca3af"}}>No events yet. Go to Submit to create your first!</div>}
       {mine.map(e=>(
         <div key={e.id} className="card" style={{padding:12,marginBottom:8,cursor:"pointer",display:"flex",gap:10,alignItems:"center"}} onClick={()=>onSelect(e)}>
@@ -514,13 +543,18 @@ function MyEvents({user,events,eventTypes,onSelect}){
 function ClubDirectory({clubUsers}){
   const[search,setSearch]=useState("");
   const[filter,setFilter]=useState("all");
-  const clubs=clubUsers.filter(u=>u.role!=="director"&&u.account_status!=="inactive").filter(u=>filter==="all"||(filter==="clubs"&&u.type==="club")||(filter==="committees"&&u.type==="committee")).filter(u=>!search||(u.club||"").toLowerCase().includes(search.toLowerCase())||(u.president||"").toLowerCase().includes(search.toLowerCase())).sort((a,b)=>a.club>b.club?1:-1);
+  const{sort:sortClubs,Th:ThClubs}=useSort("club");
+  const clubs=sortClubs(clubUsers.filter(u=>u.role!=="director"&&u.account_status!=="inactive").filter(u=>filter==="all"||(filter==="clubs"&&u.type==="club")||(filter==="committees"&&u.type==="committee")).filter(u=>!search||(u.club||"").toLowerCase().includes(search.toLowerCase())||(u.president||"").toLowerCase().includes(search.toLowerCase())));
   return(
     <div className="fade">
       <div className="st">Club and Committee Directory</div>
       <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search..." style={{flex:1,minWidth:140}}/>
         {["all","clubs","committees"].map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:"7px 14px",borderRadius:20,fontWeight:700,fontSize:".78rem",border:"none",cursor:"pointer",background:filter===f?NAVY:"#e5e7eb",color:filter===f?"#fff":NAVY,textTransform:"capitalize"}}>{f==="all"?"All":f==="clubs"?"Clubs":"Committees"}</button>)}
+        <span style={{color:"#9ca3af",fontSize:".75rem",alignSelf:"center"}}>Sort:</span>
+        {[["club","Name"],["president","Contact"],["type","Type"]].map(([k,l])=>(
+          <button key={k} onClick={()=>ThClubs({k}).props.onClick()} style={{padding:"5px 12px",borderRadius:20,fontWeight:700,fontSize:".74rem",border:"none",cursor:"pointer",background:"#f3f4f6",color:"#374151"}}>{l}</button>
+        ))}
       </div>
       {clubs.length===0&&<div className="card" style={{padding:24,textAlign:"center",color:"#9ca3af"}}>No results.</div>}
       <div style={{display:"grid",gap:10,gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))"}}>
@@ -579,7 +613,8 @@ function Dashboard({events,eventTypes,rooms,clubUsers,onSelect,addToast,onRefres
     return{r,bookedNow,bookedToday};
   });
 
-  const filtered=upcoming.filter(e=>{if(!search)return true;const q=search.toLowerCase();return(e.title||"").toLowerCase().includes(q)||(e.club||"").toLowerCase().includes(q)||(e.room||"").toLowerCase().includes(q);});
+  const{sort:sortWf,Th:ThWf}=useSort("date");
+  const filtered=sortWf(upcoming.filter(e=>{if(!search)return true;const q=search.toLowerCase();return(e.title||"").toLowerCase().includes(q)||(e.club||"").toLowerCase().includes(q)||(e.room||"").toLowerCase().includes(q);}));
 
   const btn=(label,bg,color,onClick,style={})=><button onClick={onClick} style={{padding:"6px 14px",borderRadius:20,border:"none",background:bg,color,fontWeight:600,fontSize:".78rem",cursor:"pointer",...style}}>{label}</button>;
 
@@ -673,7 +708,7 @@ function Dashboard({events,eventTypes,rooms,clubUsers,onSelect,addToast,onRefres
         </div>}
         <div className="tw">
           <table>
-            <thead><tr><th style={{width:28}}></th><th>Club</th><th>Event</th><th>Date</th><th>Room</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th style={{width:28}}></th><ThWf k="club" l="Club"/><ThWf k="title" l="Event"/><ThWf k="date" l="Date"/><ThWf k="room" l="Room"/><ThWf k="status" l="Status"/><th>Actions</th></tr></thead>
             <tbody>
               {filtered.length===0&&<tr><td colSpan={7} style={{textAlign:"center",color:"#9ca3af",padding:20}}>No events found</td></tr>}
               {filtered.map(e=>{
@@ -728,6 +763,9 @@ function Settings({rooms,eventTypes,clubUsers,addToast,onRefresh}){
   const[editType,setEditType]=useState(null);
   const[editUser,setEditUser]=useState(null);
   const[confirmDel,setConfirmDel]=useState(null);
+  const{sort:sortRooms,Th:ThR}=useSort("name");
+  const{sort:sortTypes,Th:ThT}=useSort("name");
+  const{sort:sortUsers,Th:ThU}=useSort("club");
 
   const saveRoom=async()=>{
     if(!editRoom.name)return addToast("Room name required","e");
@@ -773,8 +811,8 @@ function Settings({rooms,eventTypes,clubUsers,addToast,onRefresh}){
         <div>
           <div className="card">
             <div className="tw"><table>
-              <thead><tr><th>Room</th><th>Capacity</th><th>Spacing</th><th>Actions</th></tr></thead>
-              <tbody>{rooms.map(r=>(
+              <thead><tr><ThR k="name" l="Room"/><ThR k="capacity" l="Capacity"/><ThR k="spacing_days" l="Spacing"/><th>Actions</th></tr></thead>
+              <tbody>{sortRooms(rooms).map(r=>(
                 <tr key={r.id}>
                   <td style={{fontWeight:700,color:NAVY}}>{r.name}</td>
                   <td>{r.capacity?r.capacity+" people":"No limit"}</td>
@@ -792,8 +830,8 @@ function Settings({rooms,eventTypes,clubUsers,addToast,onRefresh}){
         <div>
           <div className="card">
             <div className="tw"><table>
-              <thead><tr><th>Type</th><th>Color</th><th>Same-Type Spacing</th><th>Can Overlap</th><th>Actions</th></tr></thead>
-              <tbody>{eventTypes.map(t=>(
+              <thead><tr><ThT k="name" l="Type"/><th>Color</th><ThT k="spacing_days" l="Same-Type Spacing"/><th>Can Overlap</th><th>Actions</th></tr></thead>
+              <tbody>{sortTypes(eventTypes).map(t=>(
                 <tr key={t.id}>
                   <td style={{fontWeight:700,color:NAVY}}>{t.name}</td>
                   <td><div style={{display:"flex",alignItems:"center",gap:8}}><div style={{width:22,height:22,borderRadius:6,background:t.color||GOLD,border:"1px solid #e5e7eb"}}/><span style={{fontSize:".75rem",color:"#6b7280"}}>{t.color}</span></div></td>
@@ -819,8 +857,8 @@ function Settings({rooms,eventTypes,clubUsers,addToast,onRefresh}){
           </div>
           <div className="card">
             <div className="tw"><table>
-              <thead><tr><th>Club / Account</th><th>Type</th><th>Contact</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
-              <tbody>{clubUsers.sort((a,b)=>a.club>b.club?1:-1).map(u=>(
+              <thead><tr><ThU k="club" l="Club / Account"/><ThU k="type" l="Type"/><ThU k="president" l="Contact"/><ThU k="email" l="Email"/><ThU k="account_status" l="Status"/><th>Actions</th></tr></thead>
+              <tbody>{sortUsers(clubUsers).map(u=>(
                 <tr key={u.id}>
                   <td style={{fontWeight:700,color:NAVY}}>{u.club}{(u.role==="director"||u.is_admin)&&<span style={{marginLeft:6,fontSize:".68rem",background:GOLD,color:"#fff",padding:"2px 6px",borderRadius:10,fontWeight:700}}>Admin</span>}</td>
                   <td><span className={"pill "+(u.type==="committee"?"pp":"pb")}>{u.type||u.role}</span></td>
